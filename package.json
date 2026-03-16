@@ -1,0 +1,30 @@
+{
+  "name": "@lazulikao/luci-types",
+  "version": "0.1.0",
+  "description": "TypeScript type definitions for LuCI (OpenWrt web framework)",
+  "keywords": [
+    "luci",
+    "openwrt",
+    "typescript",
+    "types"
+  ],
+  "author": "lazulikao",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lazulikao/luci-types.git"
+  },
+  "types": "index.d.ts",
+  "files": [
+    "index.d.ts",
+    "luci.d.ts",
+    "luci/",
+    "jsx.d.ts"
+  ],
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
