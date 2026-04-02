@@ -6,11 +6,11 @@ declare global {
     name?: string;
     style?: string;
   };
-  function createJsxElement(tag: any, props: any, ...children: any[]): Node;
-  const JSXFragment: unique symbol;
+  
   type JSXElement<T extends HTMLElement> = Partial<
     Omit<T, keyof BaseProps> & BaseProps
   >;
+  
   namespace JSX {
     type Element = HTMLElement;
     interface IntrinsicElements {
