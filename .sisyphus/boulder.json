@@ -1,0 +1,40 @@
+{
+  "active_plan": "A:\\Documents\\GitHub\\luci-app-docker-compose\\luci-types\\.sisyphus\\plans\\luci-types-overhaul.md",
+  "started_at": "2026-04-05T15:55:51.380Z",
+  "session_ids": [
+    "ses_2ad7f393bffeO4GA0PHJ73t2Q1",
+    "ses_2a19dae4affegaHj9mcLzzPY0G",
+    "ses_2a19debaeffeJJgCPiVXiRGbF6",
+    "ses_2a19d5e44ffeyC1zgfGS9FKmoP",
+    "ses_2a19dfdd8ffeyML0QitGgkaSCy",
+    "ses_2a19d8d1effeEZuPlF1ZWp5aHZ",
+    "ses_2a19d4de3ffelVmmD4uOEbpxK3",
+    "ses_2a19db3e6ffensfdMimkezxFDu",
+    "ses_2a1927067ffeZOWiHH834mzXmI",
+    "ses_2a1922298ffeGd8BNOOr6kHTl5",
+    "ses_2a19321a4ffeDe429Tdp5lkG2e",
+    "ses_2a175e21fffeuBoTl8hay5GjsN",
+    "ses_2a1691402ffeAgbO1m1dTQU9Wi",
+    "ses_2a1491e68ffeScQaX0FewcRuP6",
+    "ses_2a1494265ffevG79x8HcokAvH4",
+    "ses_2a149a145ffe0TCQb0ejvaq9Ei",
+    "ses_2a148dcabffeEqUMiZ3jNhBBnm",
+    "ses_2a14972c7ffepZ5OG8eea5xO6z",
+    "ses_2a12c18a3ffeZisxId5cSQGxyE",
+    "ses_2a12c1202ffeGLGRRWV0aSLrS1",
+    "ses_2a12c0c24ffeBB6QO8HhF4pMLz",
+    "ses_2a12c0570ffe044ffFR4NqAumK"
+  ],
+  "plan_name": "luci-types-overhaul",
+  "agent": "atlas",
+  "task_sessions": {
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** — `oracle`",
+      "session_id": "ses_2a12c18a3ffeZisxId5cSQGxyE",
+      "agent": "oracle",
+      "updated_at": "2026-04-05T18:10:47.355Z"
+    }
+  }
+}
