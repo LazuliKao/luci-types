@@ -2,6 +2,7 @@
   "name": "@lazulikao/luci-types",
   "version": "0.1.0",
   "description": "TypeScript type definitions for LuCI (OpenWrt web framework)",
+  "type": "module",
   "keywords": [
     "luci",
     "openwrt",
@@ -15,16 +16,41 @@
     "url": "https://github.com/lazulikao/luci-types.git"
   },
   "types": "index.d.ts",
+  "bin": {
+    "luci-types": "./bin/luci-types.js",
+    "luci-i18n-export": "./bin/luci-types.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts"
+    },
+    "./i18n": {
+      "types": "./src/i18n/index.ts",
+      "import": "./src/i18n/index.ts"
+    }
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
   "files": [
     "index.d.ts",
+    "bin/",
     "luci.d.ts",
     "luci/",
-    "jsx.d.ts"
+    "jsx.d.ts",
+    "src/"
   ],
   "scripts": {
     "check": "tsc --noEmit"
   },
+  "dependencies": {
+    "tsx": "^4.22.2",
+    "typescript": "^6.0.3"
+  },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "@types/node": "^22.19.0"
+  },
+  "volta": {
+    "node": "25.9.0"
   }
 }

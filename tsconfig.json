@@ -1,12 +1,23 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "es2022",
-    "lib": ["ES2024", "DOM"],
+    "target": "es6",
+    "module": "esnext",
+    "lib": [
+      "ES2024",
+      "DOM"
+    ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "moduleResolution": "node"
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "types": [
+      "node"
+    ]
   },
-  "include": ["**/*.d.ts", "index.d.ts"]
+  "include": [
+    "**/*.d.ts",
+    "index.d.ts",
+    "src/**/*.ts"
+  ]
 }
