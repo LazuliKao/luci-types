@@ -12,10 +12,10 @@ type RenderedPoHeaders = Omit<Required<PoHeaderOptions>, "potCreationDate"> & {
 };
 
 export async function generatePo(options: GeneratePoOptions): Promise<void> {
-  const existing = options.merge ? await readExistingPo(options.output) : new Map<string, string>();
+  const existing = options.merge ? await readPoTranslations(options.output) : new Map<string, string>();
   const entries = [...new Set(options.translations)]
     .sort((left, right) => left.localeCompare(right))
-    .map<PoEntry>((msgid) => ({ msgid, msgstr: existing.get(msgid) ?? "" }));
+    .map<PoEntry>((msgid) => ({ msgid, msgstr: readNonEmpty(options.translated, msgid) ?? existing.get(msgid) ?? "" }));
 
   await fs.mkdir(path.dirname(path.resolve(options.output)), { recursive: true });
   await fs.writeFile(options.output, renderPo(entries, options), "utf8");
@@ -32,7 +32,7 @@ export function renderPo(entries: readonly PoEntry[], options: Omit<GeneratePoOp
   return `${lines.join("\n\n")}\n`;
 }
 
-async function readExistingPo(filePath: string): Promise<Map<string, string>> {
+export async function readPoTranslations(filePath: string): Promise<Map<string, string>> {
   try {
     const source = await fs.readFile(filePath, "utf8");
     return parsePo(source);
@@ -124,6 +124,12 @@ function formatHeaders(headers: RenderedPoHeaders): string {
 
 function renderEntry(entry: PoEntry): string {
   return `${renderPoValue("msgid", entry.msgid)}\n${renderPoValue("msgstr", entry.msgstr)}`;
+}
+
+function readNonEmpty(translations: ReadonlyMap<string, string> | undefined, msgid: string): string | undefined {
+  const value = translations?.get(msgid);
+
+  return value === undefined || value.trim() === "" ? undefined : value;
 }
 
 function renderPoValue(key: "msgid" | "msgstr", value: string): string {
