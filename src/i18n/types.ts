@@ -28,6 +28,32 @@ export interface GeneratePoOptions {
   packageName?: string;
   merge?: boolean;
   headers?: PoHeaderOptions;
+  translated?: ReadonlyMap<string, string>;
+}
+
+export interface Translator {
+  translate(texts: readonly string[]): Promise<Map<string, string>>;
+}
+
+export interface TranslateTranslationsOptions {
+  translations: readonly string[];
+  translator: Translator;
+  cachePath?: string;
+  batchSize?: number;
+  existing?: ReadonlyMap<string, string>;
+  onProgress?: (progress: TranslateProgress) => void;
+}
+
+export interface TranslateProgress {
+  batch: number;
+  batches: number;
+  size: number;
+}
+
+export interface TranslateTranslationsResult {
+  translated: Map<string, string>;
+  newCount: number;
+  cachePath?: string;
 }
 
 export interface ExportTranslationsOptions extends ExtractTranslationsOptions {
@@ -38,10 +64,17 @@ export interface ExportTranslationsOptions extends ExtractTranslationsOptions {
   merge?: boolean;
   json?: boolean;
   headers?: PoHeaderOptions;
+  translator?: Translator;
+  cachePath?: string;
+  batchSize?: number;
+  onTranslateProgress?: (progress: TranslateProgress) => void;
 }
 
 export interface ExportTranslationsResult {
   translations: string[];
   jsonPath?: string;
   poPath?: string;
+  translated?: Map<string, string>;
+  translatedCount?: number;
+  cachePath?: string;
 }
