@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import path from "node:path";
 import { exportTranslations } from "../i18n/export.ts";
+import { OpenAICompatibleTranslator } from "../i18n/translators/index.ts";
 
 interface CliOptions {
 	input: string[];
@@ -11,6 +12,12 @@ interface CliOptions {
 	merge: boolean;
 	json: boolean;
 	exclude: string[];
+	translate: boolean;
+	translator: "openai";
+	cache?: string;
+	batchSize?: number;
+	apiUrl?: string;
+	prompt?: string;
 	help: boolean;
 }
 
@@ -26,6 +33,10 @@ async function main(): Promise<void> {
 		throw new Error(
 			"Missing --input. Provide one or more source files or directories.",
 		);
+	}
+
+	if (options.translate && options.po === undefined) {
+		throw new Error("--translate requires --po because translated values are written to PO msgstr entries.");
 	}
 
 	if (
@@ -45,6 +56,12 @@ async function main(): Promise<void> {
 		merge: options.merge,
 		json: options.json,
 		exclude: options.exclude,
+		translator: options.translate ? createTranslator(options) : undefined,
+		cachePath: options.translate ? options.cache ?? "translation.cache.json" : undefined,
+		batchSize: options.batchSize,
+		onTranslateProgress: ({ batch, batches, size }) => {
+			console.log(`Translating batch ${batch}/${batches} (${size} string(s))...`);
+		},
 	});
 
 	console.log(`Extracted ${result.translations.length} translation string(s).`);
@@ -56,6 +73,14 @@ async function main(): Promise<void> {
 	if (result.poPath !== undefined) {
 		console.log(`Wrote PO: ${path.resolve(result.poPath)}`);
 	}
+
+	if (result.translatedCount !== undefined) {
+		console.log(`Translated ${result.translatedCount} new string(s).`);
+	}
+
+	if (result.cachePath !== undefined) {
+		console.log(`Translation cache: ${path.resolve(result.cachePath)}`);
+	}
 }
 
 function parseArgs(args: readonly string[]): CliOptions {
@@ -65,6 +90,8 @@ function parseArgs(args: readonly string[]): CliOptions {
 		merge: false,
 		json: false,
 		exclude: [],
+		translate: false,
+		translator: "openai",
 		help: false,
 	};
 
@@ -111,6 +138,29 @@ function parseArgs(args: readonly string[]): CliOptions {
 			case "--json":
 				options.json = true;
 				break;
+			case "--translate":
+				options.translate = true;
+				break;
+			case "--translator":
+				index += 1;
+				options.translator = readTranslator(readValue(args, index, arg));
+				break;
+			case "--cache":
+				index += 1;
+				options.cache = readValue(args, index, arg);
+				break;
+			case "--batch-size":
+				index += 1;
+				options.batchSize = readPositiveInteger(readValue(args, index, arg), arg);
+				break;
+			case "--api-url":
+				index += 1;
+				options.apiUrl = readValue(args, index, arg);
+				break;
+			case "--prompt":
+				index += 1;
+				options.prompt = readValue(args, index, arg);
+				break;
 			default:
 				if (arg.startsWith("-")) {
 					throw new Error(`Unknown option: ${arg}`);
@@ -121,6 +171,36 @@ function parseArgs(args: readonly string[]): CliOptions {
 	}
 
 	return options;
+}
+
+function createTranslator(options: CliOptions): OpenAICompatibleTranslator {
+	if (options.translator !== "openai") {
+		throw new Error(`Unsupported translator: ${options.translator}`);
+	}
+
+	return new OpenAICompatibleTranslator({
+		apiUrl: options.apiUrl,
+		locale: options.locale,
+		promptPath: options.prompt,
+	});
+}
+
+function readTranslator(value: string): "openai" {
+	if (value === "openai") {
+		return value;
+	}
+
+	throw new Error(`Unsupported translator: ${value}`);
+}
+
+function readPositiveInteger(value: string, option: string): number {
+	const parsed = Number(value);
+
+	if (!Number.isInteger(parsed) || parsed < 1) {
+		throw new Error(`${option} must be a positive integer.`);
+	}
+
+	return parsed;
 }
 
 function readValue(
@@ -149,11 +229,19 @@ Options:
   -m, --merge            Preserve existing msgstr values when --po already exists.
       --exclude <name>   Directory name to exclude. Repeatable.
       --json             Force JSON output when only --po is provided.
+      --translate        Translate extracted strings before writing --po. Requires --po.
+      --translator <name> Translator backend. Currently: openai. Default: openai.
+      --cache <path>     Translation cache JSON. Default: translation.cache.json.
+      --batch-size <n>   Strings per translation request. Default: 25.
+      OPENAI_MODEL       Environment variable for the model. Default: gpt-4o-mini.
+      --api-url <url>    OpenAI-compatible endpoint. Default: OPENAI_API_URL or OpenAI.
+      --prompt <path>    Extra system prompt markdown/text file.
   -h, --help             Show this help.
 
 Examples:
   luci-i18n-export -i ./htdocs -o ./translations.json
   luci-i18n-export -i ./frontend-src/src --po ./po/zh_Hans/app.po --merge -p luci-app-example
+  OPENAI_MODEL=gpt-4o-mini luci-i18n-export -i ./htdocs --po ./po/zh_Hans/app.po --translate
 `);
 }
 
