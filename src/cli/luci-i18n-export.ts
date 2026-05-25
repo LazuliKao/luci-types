@@ -57,7 +57,7 @@ async function main(): Promise<void> {
 		json: options.json,
 		exclude: options.exclude,
 		translator: options.translate ? createTranslator(options) : undefined,
-		cachePath: options.translate ? options.cache ?? "translation.cache.json" : undefined,
+		cachePath: options.translate ? options.cache : undefined,
 		batchSize: options.batchSize,
 		onTranslateProgress: ({ batch, batches, size }) => {
 			console.log(`Translating batch ${batch}/${batches} (${size} string(s))...`);
@@ -231,7 +231,7 @@ Options:
       --json             Force JSON output when only --po is provided.
       --translate        Translate extracted strings before writing --po. Requires --po.
       --translator <name> Translator backend. Currently: openai. Default: openai.
-      --cache <path>     Translation cache JSON. Default: translation.cache.json.
+      --cache <path>     Translation cache JSON. Default: none.
       --batch-size <n>   Strings per translation request. Default: 25.
       OPENAI_MODEL       Environment variable for the model. Default: gpt-4o-mini.
       --api-url <url>    OpenAI-compatible endpoint. Default: OPENAI_API_URL or OpenAI.

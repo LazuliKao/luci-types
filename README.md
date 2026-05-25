@@ -88,7 +88,7 @@ Options:
 - `--package, -p` — project/package name used in `.po` metadata
 - `--translate` — use a translator backend to populate `.po` `msgstr` values
 - `--translator` — translator backend, currently `openai`
-- `--cache` — JSON cache file mapping source strings to translated strings, default `translation.cache.json`
+- `--cache` — JSON cache file mapping source strings to translated strings, default none
 - `--batch-size` — strings per model request, default `25`
 - `--api-url` — OpenAI-compatible base URL or chat completions endpoint, default `OPENAI_API_URL` or OpenAI
 - `--prompt` — extra system prompt markdown/text file for project terminology
