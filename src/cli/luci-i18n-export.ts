@@ -22,9 +22,10 @@ interface CliOptions {
 }
 
 async function main(): Promise<void> {
-	const options = parseArgs(process.argv.slice(2));
+	const args = process.argv.slice(2);
+	const options = parseArgs(args);
 
-	if (options.help) {
+	if (options.help || args.length === 0) {
 		printHelp();
 		return;
 	}
