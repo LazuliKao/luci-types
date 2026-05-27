@@ -17,8 +17,7 @@
   },
   "types": "index.d.ts",
   "bin": {
-    "luci-types": "./bin/luci-types.js",
-    "luci-i18n-export": "./bin/luci-types.js"
+    "luci-types": "./bin/luci-types.js"
   },
   "exports": {
     ".": {
@@ -27,6 +26,21 @@
     "./i18n": {
       "types": "./src/i18n/index.ts",
       "import": "./src/i18n/index.ts"
+    },
+    "./jsx-runtime": {
+      "types": "./src/jsx/jsx-runtime.ts",
+      "import": "./src/jsx/jsx-runtime.ts",
+      "default": "./src/jsx/jsx-runtime.ts"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./src/jsx/jsx-dev-runtime.ts",
+      "import": "./src/jsx/jsx-dev-runtime.ts",
+      "default": "./src/jsx/jsx-dev-runtime.ts"
+    },
+    "./jsx-factory": {
+      "types": "./src/jsx/jsx-factory.ts",
+      "import": "./src/jsx/jsx-factory.ts",
+      "default": "./src/jsx/jsx-factory.ts"
     }
   },
   "engines": {
