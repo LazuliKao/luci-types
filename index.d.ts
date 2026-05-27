@@ -30,3 +30,5 @@
 /// <reference path="./luci/headers.d.ts" />
 /// <reference path="./luci/cbi.d.ts" />
 /// <reference path="./jsx.d.ts" />
+
+export {};
