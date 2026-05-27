@@ -1,6 +1,6 @@
 # @lazulikao/luci-types
 
-TypeScript type definitions for the [LuCI](https://openwrt.org/docs/guide-developer/luci/start) OpenWrt web framework.
+TypeScript type definitions and dev tools for the [LuCI](https://openwrt.org/docs/guide-developer/luci/start) OpenWrt web framework.
 
 ## Install
 
@@ -33,19 +33,32 @@ Or use a triple-slash reference in a `.d.ts` file:
 /// <reference types="@lazulikao/luci-types" />
 ```
 
-## Translation export CLI
+## CLI
 
-This package contains TypeScript source for exporting LuCI `_()` strings from JavaScript or TypeScript source into JSON and gettext `.po` files. The source is kept as TypeScript and is not compiled into `dist/`; the published command calls `tsx` to run the TypeScript source.
+All functionality is accessed via the `luci-types` CLI with subcommands:
 
 ```bash
-pnpm exec luci-types -i ./htdocs -o ./translations.json
-pnpm exec luci-types -i ./frontend-src/src --po ./po/zh_Hans/app.po --merge -p luci-app-example
+luci-types <command>
+```
+
+Available commands:
+
+- `dev` — Start build watch + SSH auto-upload to router
+- `i18n` — Extract and manage LuCI translations
+
+### `luci-types i18n`
+
+Export LuCI `_()` strings from JavaScript or TypeScript source into JSON and gettext `.po` files. The source is kept as TypeScript and is not compiled into `dist/`; the published command calls `tsx` to run the TypeScript source.
+
+```bash
+pnpm exec luci-types i18n -i ./htdocs -o ./translations.json
+pnpm exec luci-types i18n -i ./frontend-src/src --po ./po/zh_Hans/app.po --merge -p luci-app-example
 ```
 
 To also call an OpenAI-compatible model and fill `.po` `msgstr` values, enable `--translate` together with `--po`. The translator uses Node's built-in `fetch`, so there is no extra OpenAI SDK dependency.
 
 ```bash
-OPENAI_API_KEY=sk-... pnpm exec luci-types \
+OPENAI_API_KEY=sk-... pnpm exec luci-types i18n \
   -i ./htdocs \
   --po ./po/zh_Hans/app.po \
   --translate \
@@ -56,7 +69,7 @@ OPENAI_API_KEY=sk-... pnpm exec luci-types \
 For OpenAI-compatible local or third-party endpoints, set `OPENAI_API_URL` or pass `--api-url`:
 
 ```bash
-OPENAI_API_KEY=local OPENAI_API_URL=http://127.0.0.1:11434/v1 OPENAI_MODEL=translategemma:12b-it-q8_0 pnpm exec luci-types \
+OPENAI_API_KEY=local OPENAI_API_URL=http://127.0.0.1:11434/v1 OPENAI_MODEL=translategemma:12b-it-q8_0 pnpm exec luci-types i18n \
   -i ./htdocs \
   --po ./po/zh_Hans/app.po \
   --translate
@@ -67,7 +80,7 @@ If you want to run `pnpm luci-types`, add a script in your app:
 ```json
 {
   "scripts": {
-    "luci-types": "luci-types -i ./frontend-src/src --po ./po/zh_Hans/app.po --merge -p luci-app-example"
+    "luci-types": "luci-types i18n -i ./frontend-src/src --po ./po/zh_Hans/app.po --merge -p luci-app-example"
   }
 }
 ```
@@ -127,4 +140,72 @@ await exportTranslations({
   }),
   cachePath: "./translation.cache.json",
 });
+```
+
+### `luci-types dev`
+
+Start build watch mode with automatic SSH upload to an OpenWrt router. Spawns the build process in watch mode and monitors the output directory, uploading changed files to the router via SFTP.
+
+```bash
+pnpm exec luci-types dev
+```
+
+Add to your project's `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev:remote": "luci-types dev"
+  }
+}
+```
+
+#### Configuration
+
+Create a `.env` file in your project root:
+
+```env
+# SSH connection
+SSH_HOST=192.168.1.1
+SSH_PORT=22
+SSH_USERNAME=root
+
+# Authentication (one of the two is required, private key takes priority)
+SSH_PASSWORD=your_password
+# SSH_PRIVATE_KEY_PATH=~/.ssh/id_rsa
+# SSH_PASSPHRASE=your_passphrase_if_needed
+
+# Remote upload destination
+SSH_REMOTE_PATH=/www/luci-static/resources/view/portweaver
+
+# Local build output path (relative to project root)
+LOCAL_DIST_PATH=./dist
+
+# Build command (watch mode)
+BUILD_COMMAND=rsbuild build --watch
+
+# Optional: filter uploads by file extension
+# UPLOAD_EXTENSIONS=.js,.css
+```
+
+#### Programmatic API
+
+```ts
+import { devRemote, loadDevRemoteConfig } from "@lazulikao/luci-types/dev";
+
+const config = loadDevRemoteConfig();
+await devRemote(config);
+```
+
+You can also use individual modules:
+
+```ts
+import { SshUploader, FileWatcher, loadDevRemoteConfig } from "@lazulikao/luci-types/dev";
+
+const config = loadDevRemoteConfig();
+const uploader = new SshUploader(config);
+const watcher = new FileWatcher(config, uploader);
+
+// Custom orchestration
+watcher.start();
 ```
