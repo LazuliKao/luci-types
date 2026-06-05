@@ -45,6 +45,7 @@ declare global {
       code: JSXElement<HTMLElement>;
       p: JSXElement<HTMLParagraphElement>;
       a: JSXElement<HTMLAnchorElement>;
+      pre: JSXElement<HTMLPreElement>;
     }
   }
 }
