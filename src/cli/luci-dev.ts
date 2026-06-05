@@ -18,8 +18,8 @@ Environment variables (in .env):
   SSH_PASSWORD         SSH password
   SSH_PRIVATE_KEY_PATH Path to SSH private key (overrides password)
   SSH_PASSPHRASE       Passphrase for private key
-  SSH_REMOTE_PATH      Remote directory to upload to (required)
-  LOCAL_DIST_PATH      Local build output directory, default ./dist
+  SSH_REMOTE_PATH      Remote directory to upload to (required, comma-separated for multiple)
+  LOCAL_DIST_PATH      Local build output directory, default ./dist (comma-separated for multiple)
   BUILD_COMMAND        Build command to run in watch mode (required)
   UPLOAD_EXTENSIONS    Comma-separated file extensions to upload, e.g. ".js,.css"
 `);

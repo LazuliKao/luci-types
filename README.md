@@ -175,11 +175,13 @@ SSH_PASSWORD=your_password
 # SSH_PRIVATE_KEY_PATH=~/.ssh/id_rsa
 # SSH_PASSPHRASE=your_passphrase_if_needed
 
-# Remote upload destination
+# Remote upload destination (comma-separated for multiple paths)
 SSH_REMOTE_PATH=/www/luci-static/resources/view/portweaver
+# SSH_REMOTE_PATH=/www/luci-static/resources/view/app,/usr/lib/lua/luci/controller/app
 
-# Local build output path (relative to project root)
+# Local build output path (relative to project root, comma-separated for multiple paths)
 LOCAL_DIST_PATH=./dist
+# LOCAL_DIST_PATH=./dist/htdocs,./dist/root
 
 # Build command (watch mode)
 BUILD_COMMAND=rsbuild build --watch

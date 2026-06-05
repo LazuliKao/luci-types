@@ -9,8 +9,8 @@ export interface DevRemoteConfig {
 	sshPassword?: string;
 	sshPrivateKeyPath?: string;
 	sshPassphrase?: string;
-	remotePath: string;
-	localDistPath: string;
+	remotePaths: string[];
+	localDistPaths: string[];
 	buildCommand: string;
 	uploadExtensions?: string[];
 }
@@ -59,8 +59,16 @@ export function loadDevRemoteConfig(projectRoot?: string): DevRemoteConfig {
 	const sshUsername = env.SSH_USERNAME;
 	if (!sshUsername) throw new Error("SSH_USERNAME is required in .env");
 
-	const remotePath = env.SSH_REMOTE_PATH;
-	if (!remotePath) throw new Error("SSH_REMOTE_PATH is required in .env");
+	const remotePathEnv = env.SSH_REMOTE_PATH;
+	if (!remotePathEnv) throw new Error("SSH_REMOTE_PATH is required in .env");
+	const remotePaths = remotePathEnv.split(",").map(p => p.trim()).filter(Boolean);
+
+	const localDistPathEnv = env.LOCAL_DIST_PATH || "./dist";
+	const localDistPaths = localDistPathEnv.split(",").map(p => resolve(root, p.trim())).filter(Boolean);
+
+	if (remotePaths.length !== localDistPaths.length) {
+		throw new Error("SSH_REMOTE_PATH and LOCAL_DIST_PATH must have the same number of comma-separated paths");
+	}
 
 	const buildCommand = env.BUILD_COMMAND;
 	if (!buildCommand) throw new Error("BUILD_COMMAND is required in .env");
@@ -95,8 +103,8 @@ export function loadDevRemoteConfig(projectRoot?: string): DevRemoteConfig {
 		sshPassword: env.SSH_PASSWORD,
 		sshPrivateKeyPath,
 		sshPassphrase: env.SSH_PASSPHRASE,
-		remotePath,
-		localDistPath: resolve(root, env.LOCAL_DIST_PATH || "./dist"),
+		remotePaths,
+		localDistPaths,
 		buildCommand,
 		uploadExtensions,
 	};

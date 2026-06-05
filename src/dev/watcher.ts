@@ -1,5 +1,5 @@
 import { watch, type FSWatcher } from "chokidar";
-import { basename } from "node:path";
+import { basename, resolve } from "node:path";
 import type { DevRemoteConfig } from "./config.ts";
 import { SshUploader } from "./uploader.ts";
 
@@ -41,8 +41,26 @@ export class FileWatcher {
 
 		for (const file of files) {
 			try {
+				const absoluteFile = resolve(file);
+				let matchIndex = -1;
+				// Match the longest path to handle nested paths correctly if they overlap
+				let longestMatchLen = -1;
+				for (let i = 0; i < this.config.localDistPaths.length; i++) {
+					const localPath = this.config.localDistPaths[i];
+					if (absoluteFile.startsWith(localPath) && localPath.length > longestMatchLen) {
+						matchIndex = i;
+						longestMatchLen = localPath.length;
+					}
+				}
+
+				if (matchIndex === -1) {
+					console.warn(`⚠️  Cannot determine remote path for ${file}`);
+					continue;
+				}
+
 				const fileName = basename(file);
-				const remoteFilePath = `${this.config.remotePath}/${fileName}`;
+				const remotePathDir = this.config.remotePaths[matchIndex];
+				const remoteFilePath = `${remotePathDir}/${fileName}`;
 				await this.uploader.uploadWithRetry(file, remoteFilePath);
 			} catch (err) {
 				console.error(`❌ Upload failed for ${file}:`, err);
@@ -51,12 +69,12 @@ export class FileWatcher {
 	}
 
 	start(): void {
-		console.log(`📂 Watching: ${this.config.localDistPath}`);
+		console.log(`📂 Watching:\n  ${this.config.localDistPaths.join("\n  ")}`);
 		console.log(
-			`📤 Upload to: ${this.config.sshUsername}@${this.config.sshHost}:${this.config.remotePath}\n`,
+			`📤 Uploading to:\n  ${this.config.remotePaths.map(p => `${this.config.sshUsername}@${this.config.sshHost}:${p}`).join("\n  ")}\n`,
 		);
 
-		this.watcher = watch(this.config.localDistPath, {
+		this.watcher = watch(this.config.localDistPaths, {
 			persistent: true,
 			ignoreInitial: false,
 			awaitWriteFinish: {
