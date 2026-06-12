@@ -62,8 +62,8 @@ declare namespace LuCI {
 
 // Global LuCI objects available via LuCI 'require' lines
 declare const L: {
-  view: typeof LuCI.view & {
-      extend<TN extends {}>(proto: Partial<typeof LuCI.view>): typeof LuCI.view & TN;
+  view: (new (...args: any[]) => typeof LuCI.view) & {
+      extend<TN extends {}>(proto: Partial<typeof LuCI.view>): new (...args: any[]) => typeof LuCI.view & TN;
   };
   form: typeof LuCI.form;
   fs: typeof LuCI.fs;
