@@ -46,6 +46,7 @@ declare global {
       p: JSXElement<HTMLParagraphElement>;
       a: JSXElement<HTMLAnchorElement>;
       pre: JSXElement<HTMLPreElement>;
+      ul: JSXElement<HTMLUListElement>;
     }
   }
 }

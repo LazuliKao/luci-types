@@ -45,25 +45,51 @@ declare namespace LuCI.ui {
   }
 
   /**
-   * UI menu manager for building and rendering navigation menus
+   * UI menu manager for building and querying navigation menus
    * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html
    */
   class menu {
     /**
-     * Initialize the menu structure
-     * Loads and processes the menu data for rendering.
-     * @returns A promise that resolves when the menu is initialized
-     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#init
+     * Load and cache the current menu tree
+     * @returns A promise resolving to the root element of the menu tree
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#load
      */
-    init(): Promise<void>;
+    load(): Promise<menu.MenuNode>;
 
     /**
-     * Render the menu to the DOM
-     * Generates and inserts the menu markup into the page.
-     * @returns A DOM Node representing the rendered menu
-     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#render
+     * Flush the internal menu cache to force loading a new structure on the next page load
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#flushCache
      */
-    render(): Node;
+    flushCache(): void;
+
+    /**
+     * Retrieve children for a given menu node
+     * @param node - The menu node to retrieve children for. Defaults to the menu's internal root node if omitted.
+     * @returns An array of child menu nodes
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#getChildren
+     */
+    getChildren(node?: menu.MenuNode): menu.MenuNode[];
+  }
+
+  namespace menu {
+    /**
+     * Menu node representing a single entry in the navigation tree
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#.MenuNode
+     */
+    interface MenuNode {
+      /** The internal name of the node, as used in the URL */
+      name: string;
+      /** The sort index of the menu node */
+      order: number;
+      /** The title of the menu node, `null` if the node should be hidden */
+      title?: string | null;
+      /** Whether the menu entry's dependencies are satisfied */
+      satisfied: boolean;
+      /** Whether the menu entry's underlying ACLs are readonly */
+      readonly?: boolean;
+      /** Array of child menu nodes */
+      children?: MenuNode[];
+    }
   }
 
   /**
