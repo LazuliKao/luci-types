@@ -18,14 +18,18 @@ declare namespace LuCI.ui {
    * UI changes manager for handling form changes and applying/resetting them
    * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html
    */
-  class changes {
+  /**
+   * UI changes manager for handling form changes and applying/resetting them
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html
+   */
+  namespace changes {
     /**
      * Display the current changelog.
      * Open a modal dialog visualizing the currently staged UCI changes and offer
      * options to revert or apply the shown changes.
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#displayChanges
      */
-    displayChanges(): void;
+    function displayChanges(): void;
 
     /**
      * Apply the staged configuration changes.
@@ -37,14 +41,14 @@ declare namespace LuCI.ui {
      *                   an unchecked one (false, default).
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#apply
      */
-    apply(checked?: boolean): void;
+    function apply(checked?: boolean): void;
 
     /**
      * Update the change count indicator.
      * @param changes - The UCI changeset to count.
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#renderChangeIndicator
      */
-    renderChangeIndicator(changes: Record<string, uci.ChangeRecord[]>): void;
+    function renderChangeIndicator(changes: Record<string, uci.ChangeRecord[]>): void;
 
     /**
      * Revert the staged configuration changes.
@@ -54,33 +58,33 @@ declare namespace LuCI.ui {
      * reloaded once the revert process is complete.
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#revert
      */
-    revert(): void;
+    function revert(): void;
 
     /**
      * Set the change count indicator.
      * @param n - The number of changes to indicate.
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#setIndicator
      */
-    setIndicator(n: number): void;
+    function setIndicator(n: number): void;
   }
 
   /**
    * UI menu manager for building and querying navigation menus
    * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html
    */
-  class menu {
+  namespace menu {
     /**
      * Load and cache the current menu tree
      * @returns A promise resolving to the root element of the menu tree
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#load
      */
-    load(): Promise<menu.MenuNode>;
+    function load(): Promise<menu.MenuNode>;
 
     /**
      * Flush the internal menu cache to force loading a new structure on the next page load
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#flushCache
      */
-    flushCache(): void;
+    function flushCache(): void;
 
     /**
      * Retrieve children for a given menu node
@@ -88,7 +92,7 @@ declare namespace LuCI.ui {
      * @returns An array of child menu nodes
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.menu.html#getChildren
      */
-    getChildren(node?: menu.MenuNode): menu.MenuNode[];
+    function getChildren(node?: menu.MenuNode): menu.MenuNode[];
   }
 
   namespace menu {
@@ -116,7 +120,11 @@ declare namespace LuCI.ui {
    * UI tabs manager for tabbed interfaces
    * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html
    */
-  class tabs {
+  /**
+   * UI tabs manager for tabbed interfaces
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html
+   */
+  namespace tabs {
     /**
      * Add a tab to the tab group
      * Creates and adds a new tab with the specified name and content.
@@ -125,7 +133,7 @@ declare namespace LuCI.ui {
      * @param content - The content to display in the tab (DOM node or string)
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html#addTab
      */
-    addTab(name: string, title: string, content: Node | string): void;
+    function addTab(name: string, title: string, content: Node | string): void;
 
     /**
      * Switch to a specific tab
@@ -133,7 +141,7 @@ declare namespace LuCI.ui {
      * @param name - The name/identifier of the tab to switch to
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html#switchTab
      */
-    switchTab(name: string): void;
+    function switchTab(name: string): void;
 
     /**
      * Render the tab interface to the DOM
@@ -141,7 +149,7 @@ declare namespace LuCI.ui {
      * @returns A DOM Node representing the rendered tabs
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html#render
      */
-    render(): Node;
+    function render(): Node;
 
     /**
      * Initializes a new tab group from the given tab pane collection.
@@ -149,7 +157,7 @@ declare namespace LuCI.ui {
      *                May be a plain array of DOM nodes or a NodeList.
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html#initTabGroup
      */
-    initTabGroup(panes: Node[] | NodeList): void;
+    function initTabGroup(panes: Node[] | NodeList): void;
 
     /**
      * Checks whether the given tab pane node is empty.
@@ -157,7 +165,7 @@ declare namespace LuCI.ui {
      * @returns True if the pane is empty, else false.
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html#isEmptyPane
      */
-    isEmptyPane(pane: Node): boolean;
+    function isEmptyPane(pane: Node): boolean;
   }
 
   /**
