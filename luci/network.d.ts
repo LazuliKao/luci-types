@@ -1031,6 +1031,16 @@ declare namespace LuCI.network {
     getSignalPercent(): number;
 
     /**
+     * Calculate the current signal from signal and noise values.
+     * @param signal - The signal value in dBm
+     * @param noise - The noise value in dBm
+     * @returns The calculated signal level
+     * @deprecated
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.network.WifiNetwork.html#getSignalLevel
+     */
+    getSignalLevel(signal: number, noise: number): number;
+
+    /**
      * Fetch the list of associated peers.
      * @returns Promise resolving to array of WifiPeerEntry objects
      * @see https://openwrt.github.io/luci/jsapi/LuCI.network.WifiNetwork.html#getAssocList
