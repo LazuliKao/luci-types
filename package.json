@@ -59,7 +59,8 @@
     "src/"
   ],
   "scripts": {
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "validate-api": "tsx scripts/validate-api.ts"
   },
   "dependencies": {
     "chokidar": "^5.0.0",
