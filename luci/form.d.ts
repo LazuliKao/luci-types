@@ -409,8 +409,7 @@ declare namespace LuCI.form {
    * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractValue.html
    */
   abstract class AbstractValue extends AbstractElement {
-    description: boolean;
-
+    description: string;
     /**
      * If set to `false`, the underlying option value is retained upon saving
      * the form when the option element is disabled due to unsatisfied

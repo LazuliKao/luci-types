@@ -170,7 +170,7 @@ declare const L: {
   stop(entry: Function): boolean;
 
   /** Convert the given value to an array. */
-  toArray(val: any): any[];
+  toArra<T>(val: T): T[];
 
   /** Construct a URL relative to the script path of the server side LuCI application. */
   url(...parts: string[]): string;
@@ -207,5 +207,31 @@ declare function _<S extends string>(s: S): Formatter<S> & string;
 //   ...args: any[]
 // ): string & { format(...args: any[]): string };
 
-declare const widgets: any;
-declare const fwmodel: { getZoneColorStyle(zone: string): string };
+/**
+ * Legacy global CBI form widget constructors.
+ *
+ * Provides access to form widget classes such as `ZoneSelect`,
+ * `NetworkSelect`, `DeviceSelect`, `IPSelect`, and others.
+ *
+ * @deprecated Use `require('tools.widgets')` instead, which returns
+ * the typed `LuCI.tools.widgets.WidgetsModule` interface.
+ */
+declare const widgets: LuCI.tools.widgets.WidgetsModule;
+
+/**
+ * Legacy global firewall model reference.
+ *
+ * @deprecated Use `require('firewall')` instead.
+ */
+declare const fwmodel: {
+  /**
+   * Get the CSS style string for a firewall zone badge.
+   *
+   * Produces a repeating-linear-gradient CSS string for rendering
+   * zone colour badges in the form UI.
+   *
+   * @param zone - The zone name or `null` for unset/device zones.
+   * @returns CSS `background:` style string.
+   */
+  getZoneColorStyle(zone: string | null): string;
+};

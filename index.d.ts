@@ -5,11 +5,15 @@
  *
  * Includes:
  * - LuCI global APIs (L, E, _, fwmodel, widgets)
- * - LuCI form / CBI classes
- * - LuCI core modules (dom, ui, rpc, uci, fs, network, etc.)
+ * - LuCI core modules (dom, ui, rpc, uci, fs, network, poll, etc.)
+ * - LuCI tools submodules (prng, password, views, widgets)
  * - JSX ambient declarations for custom DOM JSX factory
  */
 
+/// <reference path="./luci/tools/password.d.ts" />
+/// <reference path="./luci/tools/prng.d.ts" />
+/// <reference path="./luci/tools/views.d.ts" />
+/// <reference path="./luci/tools/widgets.d.ts" />
 /// <reference path="./luci.d.ts" />
 /// <reference path="./luci/form.d.ts" />
 /// <reference path="./luci/form-classes.d.ts" />
