@@ -715,6 +715,23 @@ declare namespace LuCI.network {
      * @see https://openwrt.github.io/luci/jsapi/LuCI.network.Protocol.html#deleteConfiguration
      */
     deleteConfiguration(): Promise<any> | any;
+
+    /**
+     * Check function for the protocol handler if a new interface is creatable.
+     * This function should be overridden by protocol specific subclasses.
+     * @param ifname - The name of the interface to be created.
+     * @returns A promise resolving if a new interface is creatable, else rejects with an error message string.
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.network.Protocol.html#isCreateable
+     */
+    isCreateable(ifname: string): Promise<void>;
+
+    /**
+     * Checks whether the protocol functionality is installed.
+     * @returns True if the protocol support is installed, else false.
+     * @deprecated
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.network.Protocol.html#isInstalled
+     */
+    isInstalled(): boolean;
   }
 
   /**
