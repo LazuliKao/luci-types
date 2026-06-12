@@ -369,25 +369,120 @@ export function parseChildMembers(
     }
   }
 
+  /**
+   * Find a class/interface/module declaration with the given name within a ModuleBlock.
+   */
+  function findChildDecl(
+    block: ts.ModuleBlock,
+    name: string,
+  ): ts.ClassDeclaration | ts.ModuleDeclaration | ts.InterfaceDeclaration | undefined {
+    let found: ts.ClassDeclaration | ts.ModuleDeclaration | ts.InterfaceDeclaration | undefined;
+    ts.forEachChild(block, (decl) => {
+      if (found) return;
+      if (
+        (ts.isClassDeclaration(decl) ||
+         ts.isModuleDeclaration(decl) ||
+         ts.isInterfaceDeclaration(decl)) &&
+        decl.name !== undefined &&
+        ts.isIdentifier(decl.name) &&
+        decl.name.text === name
+      ) {
+        found = decl;
+      }
+    });
+    return found;
+  }
+  /**
+   * Recursively collect members from a class, including inherited members.
+   * Also collects type definition names (interface, type alias) from companion
+   * namespaces of the same name (e.g. `namespace Checkbox { interface InitOptions {} }`).
+   * `block` is the parent ModuleBlock to look up base classes and companion namespaces.
+   */
+  function collectWithInheritance(classNode: ts.ClassDeclaration, block: ts.ModuleBlock): void {
+    // Collect own members
+    if (classNode.name) {
+      members.push(classNode.name.text);
+    }
+    for (const m of classNode.members) {
+      if (
+        ts.isPropertyDeclaration(m) ||
+        ts.isMethodDeclaration(m)
+      ) {
+        const n = m.name;
+        if (n !== undefined && ts.isIdentifier(n)) {
+          members.push(n.text);
+        }
+      }
+    }
+
+    // Collect type definition names from companion namespace (class Foo → namespace Foo)
+    const className = classNode.name?.text;
+    if (className) {
+      ts.forEachChild(block, (decl) => {
+        if (
+          ts.isModuleDeclaration(decl) &&
+          decl.name &&
+          ts.isIdentifier(decl.name) &&
+          decl.name.text === className
+        ) {
+          ts.forEachChild(decl, (inner) => {
+            if (ts.isModuleBlock(inner)) {
+              ts.forEachChild(inner, (child) => {
+                if (ts.isInterfaceDeclaration(child) && child.name) {
+                  members.push(child.name.text);
+                } else if (ts.isTypeAliasDeclaration(child) && child.name) {
+                  members.push(child.name.text);
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // Traverse extends clauses to pick up inherited members
+    if (classNode.heritageClauses) {
+      for (const clause of classNode.heritageClauses) {
+        if (clause.token !== ts.SyntaxKind.ExtendsKeyword) continue;
+        for (const type of clause.types) {
+          // Get base class name from the type reference
+          const baseName = type.expression;
+          if (ts.isIdentifier(baseName)) {
+            const baseDecl = findChildDecl(block, baseName.text);
+            if (baseDecl && ts.isClassDeclaration(baseDecl)) {
+              collectWithInheritance(baseDecl, block);
+            }
+          }
+        }
+      }
+    }
+  }
   function visit(node: ts.Node): void {
     if (ts.isModuleDeclaration(node) && matchesParent(node)) {
       // Found parent namespace — iterate its body (ModuleBlock)
-      // looking for a class/interface/module with `childName`
       ts.forEachChild(node, (child) => {
         if (ts.isModuleBlock(child)) {
-          ts.forEachChild(child, (decl) => {
-            if (
-              (ts.isClassDeclaration(decl) ||
-               ts.isModuleDeclaration(decl) ||
-               ts.isInterfaceDeclaration(decl)) &&
-              decl.name !== undefined &&
-              ts.isIdentifier(decl.name) &&
-              decl.name.text === childName
-            ) {
-              // Collect members from this child node
+          // Try exact name first
+          const decl = findChildDecl(child, childName);
+          if (decl) {
+            if (ts.isClassDeclaration(decl)) {
+              collectWithInheritance(decl, child);
+            } else {
               ts.forEachChild(decl, collect);
             }
-          });
+            return;
+          }
+
+          // Fallback: try "CBI" + childName prefix (form classes use CBI prefix)
+          const cbiName = "CBI" + childName;
+          const cbiDecl = findChildDecl(child, cbiName);
+          if (cbiDecl) {
+            if (ts.isClassDeclaration(cbiDecl)) {
+              collectWithInheritance(cbiDecl, child);
+            } else {
+              ts.forEachChild(cbiDecl, collect);
+            }
+          }
         }
       });
       return;
