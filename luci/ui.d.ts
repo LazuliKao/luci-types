@@ -142,6 +142,22 @@ declare namespace LuCI.ui {
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html#render
      */
     render(): Node;
+
+    /**
+     * Initializes a new tab group from the given tab pane collection.
+     * @param panes - A collection of tab panes to build a tab group menu for.
+     *                May be a plain array of DOM nodes or a NodeList.
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html#initTabGroup
+     */
+    initTabGroup(panes: Node[] | NodeList): void;
+
+    /**
+     * Checks whether the given tab pane node is empty.
+     * @param pane - The tab pane to check.
+     * @returns True if the pane is empty, else false.
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.tabs.html#isEmptyPane
+     */
+    isEmptyPane(pane: Node): boolean;
   }
 
   /**
