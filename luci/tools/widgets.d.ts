@@ -9,29 +9,9 @@
  */
 declare namespace LuCI.tools.widgets {
   // -----------------------------------------------------------------------
-  //  Firewall types (minimal — used by ZoneSelect / ZoneForwards)
+  //  Helper functions exported at module scope
   // -----------------------------------------------------------------------
 
-  /** A firewall zone as returned by `firewall.getZones()`. */
-  interface FirewallZone {
-    getName(): string;
-    getNetworks(): string[];
-    getDevices(): string[];
-    getSubnets(): string[];
-    getForwardingsBy(kind: 'src' | 'dest'): FirewallForwarding[];
-  }
-
-  /** A forwarding rule between two firewall zones. */
-  interface FirewallForwarding {
-    getDestinationZone(): FirewallZone | undefined;
-  }
-
-  /** The firewall defaults object returned by `firewall.getDefaults()`. */
-  interface FirewallDefaults {
-    getForward(): string;
-  }
-
-  // -----------------------------------------------------------------------
   //  Helper functions exported at module scope
   // -----------------------------------------------------------------------
 
@@ -61,7 +41,7 @@ declare namespace LuCI.tools.widgets {
   /** Additional properties of a `CBIZoneSelect` instance. */
   interface IZoneSelect {
     /** Firewall zones loaded from `firewall.getZones()`. */
-    zones: FirewallZone[];
+    zones: LuCI.firewall.Zone[];
 
     /** Logical networks loaded from `network.getNetworks()`. */
     networks: LuCI.network.Protocol[];
@@ -92,7 +72,7 @@ declare namespace LuCI.tools.widgets {
      * @param name - Zone name.
      * @returns The matching zone or `undefined`.
      */
-    lookupZone(name: string): FirewallZone | undefined;
+    lookupZone(name: string): LuCI.firewall.Zone | undefined;
 
     /**
      * Look up a logical network by name.
@@ -109,10 +89,10 @@ declare namespace LuCI.tools.widgets {
   /** Additional properties of a `CBIZoneForwards` instance. */
   interface IZoneForwards {
     /** Firewall defaults. */
-    defaults: FirewallDefaults;
+    defaults: LuCI.firewall.Defaults;
 
     /** Firewall zones. */
-    zones: FirewallZone[];
+    zones: LuCI.firewall.Zone[];
 
     /** Logical networks. */
     networks: LuCI.network.Protocol[];
@@ -125,7 +105,7 @@ declare namespace LuCI.tools.widgets {
      * @param zone - The zone to render.
      * @returns A DOM element representing the zone badge.
      */
-    renderZone(zone: FirewallZone): HTMLElement;
+    renderZone(zone: LuCI.firewall.Zone): HTMLElement;
   }
 
   // -----------------------------------------------------------------------

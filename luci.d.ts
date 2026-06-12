@@ -3,19 +3,12 @@
  * These types represent the LuCI framework APIs used in views
  */
 
-declare namespace LuCI {
-
-  type ParamsForArgs<Args extends any[]> = Args extends []
-    ? never
-    : { length: Args["length"] } & readonly string[];
-
-  type InferReturn<R> = unknown extends R ? undefined : R;
-  type RpcFn<A extends readonly any[], R> = (...args: A) => Promise<R>;
 
   /**
    * Environment settings used by the LuCI runtime
    * @see https://openwrt.github.io/luci/jsapi/LuCI.html#env
    */
+declare namespace LuCI {
   interface Env {
     /** Base URL for LuCI resources */
     base_url: string;
@@ -47,7 +40,6 @@ declare namespace LuCI {
     /** Ubus RPC endpoint URL */
     ubuspath: string;
   }
-
   /**
    * Callback invoked when an HTTP reply to a request made via L.get(), L.post() or L.poll()
    * is timed out or received successfully.
@@ -55,7 +47,7 @@ declare namespace LuCI {
    */
   type requestCallbackFn = (
     xhr: XMLHttpRequest,
-    data: any,
+    data: unknown,
     duration: number,
   ) => void;
 }
@@ -63,36 +55,35 @@ declare namespace LuCI {
 // Global LuCI objects available via LuCI 'require' lines
 declare const L: {
   view: typeof LuCI.view & {
-      extend<TN extends {}>(proto: Partial<typeof LuCI.view>): new (...args: any[]) => typeof LuCI.view & TN;
+    extend<TN extends {}>(proto: Partial<typeof LuCI.view>): new (...args: unknown[]) => typeof LuCI.view & TN;
   };
   form: typeof LuCI.form;
   fs: typeof LuCI.fs;
-  ui: typeof LuCI.ui;
   rpc: typeof LuCI.rpc;
   uci: typeof LuCI.uci;
   Poll: typeof LuCI.poll;
   /** Legacy L.Request class alias (deprecated) */
-  Request: new (...args: any[]) => any;
+  Request: new (...args: unknown[]) => unknown;
   /** Legacy L.dom class alias (deprecated) */
-  dom: new (...args: any[]) => any;
+  dom: new (...args: unknown[]) => unknown;
   env: LuCI.Env;
 
   /**
    * Compares two values numerically and returns -1, 0, or 1.
    * Meant for use with Array.sort().
    */
-  naturalCompare: (a: any, b: any) => number;
+  naturalCompare: (a: unknown, b: unknown) => number;
 
   /**
    * Return a bound function using the given self as this context.
    */
-  bind(fn: Function, self: any, ...args: any[]): Function;
+  bind<T extends (...args: unknown[]) => unknown>(fn: T, self: ThisParameterType<T>, ...args: unknown[]): T;
 
   /**
    * A wrapper around raise() which also renders the error either as
    * modal overlay or directly into the view body.
    */
-  error(type?: Error | string, fmt?: string, ...args: any[]): never;
+  error(type?: Error | string, fmt?: string, ...args: unknown[]): never;
 
   /** Construct an absolute filesystem path relative to the server document root. */
   fspath(...parts: string[]): string;
@@ -113,10 +104,10 @@ declare const L: {
   hasViewPermission(): boolean | null;
 
   /** Tests whether the passed argument is a function arguments object. */
-  isArguments(val?: any): boolean;
+  isArguments(val?: unknown): boolean;
 
   /** Tests whether the passed argument is a JavaScript object. */
-  isObject(val?: any): boolean;
+  isObject(val?: unknown): boolean;
 
   /** Return the complete URL path to the current view. */
   location(): string;
@@ -146,13 +137,13 @@ declare const L: {
   post(url: string, args: Record<string, string>, cb: LuCI.requestCallbackFn): Promise<null>;
 
   /** Captures the current stack trace and throws an error. */
-  raise(type?: Error | string, fmt?: string, ...args: any[]): never;
+  raise(type?: Error | string, fmt?: string, ...args: unknown[]): never;
 
   /** Load an additional LuCI JavaScript class and return the instantiated class. */
-  require(name: string, from?: string[]): Promise<any>;
+  require(name: string, from?: string[]): Promise<unknown>;
 
   /** Returns a promise resolving with either the given value or the default on rejection. */
-  resolveDefault(value: any, defvalue: any): Promise<any>;
+  resolveDefault<T>(value: T, defvalue: T): Promise<T>;
 
   /** Construct a URL path relative to the global static resource path. */
   resource(...parts: string[]): string;
@@ -161,7 +152,7 @@ declare const L: {
   run(): boolean;
 
   /** Convert and sort array numerically using naturalCompare(). */
-  sortedArray(val: any): any[];
+  sortedArray<T>(val: T | T[]): T[];
 
   /** Return an array of sorted object keys. */
   sortedKeys(obj: object, key?: string | null, sortmode?: 'addr' | 'num'): string[];
@@ -170,17 +161,17 @@ declare const L: {
   stop(entry: Function): boolean;
 
   /** Convert the given value to an array. */
-  toArra<T>(val: T): T[];
+  toArray<T>(val: null | string | string[] | SectionObject): T[];
 
   /** Construct a URL relative to the script path of the server side LuCI application. */
   url(...parts: string[]): string;
 
   Class: {
-    extend(proto: any): any;
+    extend(proto: Record<string, unknown>): unknown;
   };
 };
 
-declare const E: (...args: any[]) => HTMLElement;
+declare const E: (name: string, attrs?: Record<string, unknown> | null, ...children: unknown[]) => HTMLElement;
 
 type SpecifierMap = {
   d: number;
@@ -190,7 +181,7 @@ type SpecifierMap = {
 
 type ParseFormat<
   S extends string,
-  Acc extends any[] = [],
+  Acc extends unknown[] = [],
 > = S extends `${infer _}%${infer K}${infer Rest}`
   ? K extends keyof SpecifierMap
     ? ParseFormat<Rest, [...Acc, SpecifierMap[K]]>
@@ -200,12 +191,8 @@ type ParseFormat<
 declare class Formatter<S extends string> {
   format(...args: ParseFormat<S>): string;
 }
-// i18n translate function
+/** i18n translate function, returns a Formatter for interpolation. */
 declare function _<S extends string>(s: S): Formatter<S> & string;
-// declare function _(
-//   text: string,
-//   ...args: any[]
-// ): string & { format(...args: any[]): string };
 
 /**
  * Legacy global CBI form widget constructors.

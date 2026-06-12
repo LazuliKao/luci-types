@@ -669,7 +669,7 @@ declare namespace LuCI.network {
      * @returns Device instance representing the L3 device
      * @see https://openwrt.github.io/luci/jsapi/LuCI.network.Protocol.html#getL3Device
      */
-    getL3Device(): Device;
+    getL3Device(): Device | null;
 
     /**
      * Returns a list of network sub-devices associated with this logical interface.
@@ -1192,6 +1192,31 @@ declare namespace LuCI.network {
    * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getNetwork
    */
   function getNetwork(name: string): Promise<Protocol | null>;
+
+  /**
+   * Instantiate a Device object for the given device name, optionally
+   * associated with a given network Protocol.
+   *
+   * When the device name starts with `@`, it creates a virtual alias
+   * device referencing the given network.
+   *
+   * @param name - Device name, optionally prefixed with `@` for aliases.
+   * @param network - Optional Protocol instance to associate.
+   * @param extend - Optional properties to extend the Device class with.
+   * @returns A Device instance.
+   * @see https://github.com/openwrt/luci/blob/master/modules/luci-base/htdocs/luci-static/resources/network.js
+   */
+  function instantiateDevice(name: string, network?: Protocol, extend?: Record<string, unknown>): Device;
+
+  /**
+   * Instantiate a Protocol object for the given network name.
+   *
+   * @param name - Network name.
+   * @param proto - Optional protocol name override.
+   * @returns A Protocol instance or null.
+   * @see https://github.com/openwrt/luci/blob/master/modules/luci-base/htdocs/luci-static/resources/network.js
+   */
+  function instantiateNetwork(name: string, proto?: string): Protocol | null;
 
   /**
    * Gets an array containing all known networks.

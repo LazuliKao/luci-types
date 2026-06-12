@@ -14,6 +14,7 @@
 /// <reference path="./luci/tools/prng.d.ts" />
 /// <reference path="./luci/tools/views.d.ts" />
 /// <reference path="./luci/tools/widgets.d.ts" />
+/// <reference path="./luci/firewall.d.ts" />
 /// <reference path="./luci.d.ts" />
 /// <reference path="./luci/form.d.ts" />
 /// <reference path="./luci/form-classes.d.ts" />
