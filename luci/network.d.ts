@@ -1169,4 +1169,231 @@ declare namespace LuCI.network {
      */
     getI18n(): string;
   }
+
+  /**
+   * Get a Device instance describing the given network device.
+   * @param name - The name of the network device, e.g. 'eth0' or 'br-lan'
+   * @returns Promise resolving to Device instance or null if not found
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getDevice
+   */
+  function getDevice(name: string): Promise<Device | null>;
+
+  /**
+   * Get a sorted list of all found network devices.
+   * @returns Promise resolving to a sorted array of Device instances
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getDevices
+   */
+  function getDevices(): Promise<Device[]>;
+
+  /**
+   * Get a Protocol instance describing the network with the given name.
+   * @param name - The logical interface name, e.g. 'lan' or 'wan'
+   * @returns Promise resolving to Protocol instance or null if not found
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getNetwork
+   */
+  function getNetwork(name: string): Promise<Protocol | null>;
+
+  /**
+   * Gets an array containing all known networks.
+   * @returns Promise resolving to a name-sorted array of Protocol instances
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getNetworks
+   */
+  function getNetworks(): Promise<Protocol[]>;
+
+  /**
+   * Instantiates the given Protocol back-end, optionally using the given network name.
+   * @param protoname - The protocol back-end to use, e.g. 'static' or 'dhcp'
+   * @param netname - The network name to use (optional, defaults to '__dummy__')
+   * @returns The instantiated protocol back-end class or null if unknown
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getProtocol
+   */
+  function getProtocol(protoname: string, netname?: string): Protocol | null;
+
+  /**
+   * Obtains instances of all known Protocol back-end classes.
+   * @returns Array of protocol class instances
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getProtocols
+   */
+  function getProtocols(): Protocol[];
+
+  /**
+   * Get a WifiDevice instance describing the given wireless radio.
+   * @param devname - The configuration name of the wireless radio, e.g. 'radio0'
+   * @returns Promise resolving to WifiDevice instance or null if not found
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getWifiDevice
+   */
+  function getWifiDevice(devname: string): Promise<WifiDevice | null>;
+
+  /**
+   * Obtain a list of all configured radio devices.
+   * @returns Promise resolving to an array of WifiDevice instances
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getWifiDevices
+   */
+  function getWifiDevices(): Promise<WifiDevice[]>;
+
+  /**
+   * Get a WifiNetwork instance describing the given wireless network.
+   * @param netname - The wireless network name (uci section ID or network ID)
+   * @returns Promise resolving to WifiNetwork instance or null if not found
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getWifiNetwork
+   */
+  function getWifiNetwork(netname: string): Promise<WifiNetwork | null>;
+
+  /**
+   * Get an array of all WifiNetwork instances.
+   * @returns Promise resolving to an array of WifiNetwork instances
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getWifiNetworks
+   */
+  function getWifiNetworks(): Promise<WifiNetwork[]>;
+
+  /**
+   * Adds a new network of the given name.
+   * @param name - The name of the network to add, format [a-zA-Z0-9_]+
+   * @param options - Optional uci option values to set
+   * @returns Promise resolving to Protocol instance or null if invalid or already exists
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#addNetwork
+   */
+  function addNetwork(name: string, options?: Record<string, string | string[]>): Promise<Protocol | null>;
+
+  /**
+   * Adds a new wireless network to the configuration.
+   * @param options - The options to set (must at least contain a 'device' property)
+   * @returns Promise resolving to WifiNetwork instance or null if invalid
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#addWifiNetwork
+   */
+  function addWifiNetwork(options: Record<string, string | string[]>): Promise<WifiNetwork | null>;
+
+  /**
+   * Deletes the given network from configuration.
+   * @param name - The name of the network to delete
+   * @returns Promise resolving to true if deleted, false if not found
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#deleteNetwork
+   */
+  function deleteNetwork(name: string): Promise<boolean>;
+
+  /**
+   * Deletes the given wireless network from configuration.
+   * @param netname - The name of the network to remove
+   * @returns Promise resolving to true if deleted, false if not found
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#deleteWifiNetwork
+   */
+  function deleteWifiNetwork(netname: string): Promise<boolean>;
+
+  /**
+   * Rename the given network and its references to a new name.
+   * @param oldName - The current name of the network
+   * @param newName - The new name, format [a-zA-Z0-9_]+
+   * @returns Promise resolving to true if renamed, false otherwise
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#renameNetwork
+   */
+  function renameNetwork(oldName: string, newName: string): Promise<boolean>;
+
+  /**
+   * Flushes the local network state cache.
+   * @returns Promise resolving to the internal network state object
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#flushCache
+   */
+  function flushCache(): Promise<Record<string, any>>;
+
+  /**
+   * Test if a given network device name is in the list of patterns to ignore.
+   * @param name - The device name to test
+   * @returns True if the name matches an ignore pattern
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#isIgnoredDevice
+   */
+  function isIgnoredDevice(name: string): boolean;
+
+  /**
+   * Registers a new regular expression pattern to recognize virtual interfaces.
+   * @param pat - A RegExp instance to match a virtual interface name
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#registerPatternVirtual
+   */
+  function registerPatternVirtual(pat: RegExp): void;
+
+  /**
+   * Registers a new Protocol subclass with the given methods.
+   * @param protoname - The name of the new protocol to register
+   * @param methods - The member methods and values of the new subclass
+   * @returns The new Protocol subclass
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#registerProtocol
+   */
+  function registerProtocol(protoname: string, methods: Record<string, any>): Protocol;
+
+  /**
+   * Registers a new human readable translation string for a Protocol error code.
+   * @param code - The ubus protocol error code to register, e.g. 'NO_DEVICE'
+   * @param message - The message to use as translation
+   * @returns True if added, false if invalid or already exists
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#registerErrorCode
+   */
+  function registerErrorCode(code: string, message: string): boolean;
+
+  /**
+   * Converts a given netmask to a prefix size in bits.
+   * @param netmask - The netmask to convert
+   * @param v6 - Whether to parse as IPv6 (true) or IPv4 (false, default)
+   * @returns Number of prefix bits or null if invalid
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#maskToPrefix
+   */
+  function maskToPrefix(netmask: string, v6?: boolean): number | null;
+
+  /**
+   * Converts a given prefix size in bits to a netmask.
+   * @param bits - The prefix size in bits
+   * @param v6 - Whether to convert to IPv6 (true) or IPv4 (false, default)
+   * @returns Netmask string or null if bits exceeds maximum
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#prefixToMask
+   */
+  function prefixToMask(bits: number, v6?: boolean): string | null;
+
+  /**
+   * Converts a WifiEncryption entry into a human readable string.
+   * @param encryption - The wireless encryption entry to convert
+   * @returns Description string or null if invalid
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#formatWifiEncryption
+   */
+  function formatWifiEncryption(encryption: WifiEncryption): string | null;
+
+  /**
+   * Queries the internal DSL modem type from board information.
+   * @returns Promise resolving to the modem type (e.g. 'vdsl') or null
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getDSLModemType
+   */
+  function getDSLModemType(): Promise<string | null>;
+
+  /**
+   * Queries aggregated information about known hosts.
+   * @returns Promise resolving to a Hosts instance describing known hosts
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getHostHints
+   */
+  function getHostHints(): Promise<Hosts>;
+
+  /**
+   * Get IPv4 wan networks (networks with default 0.0.0.0/0 route).
+   * @returns Promise resolving to an array of Protocol instances
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getWANNetworks
+   */
+  function getWANNetworks(): Promise<Protocol[]>;
+
+  /**
+   * Get IPv6 wan networks (networks with default ::/0 route).
+   * @returns Promise resolving to an array of Protocol instances
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getWAN6Networks
+   */
+  function getWAN6Networks(): Promise<Protocol[]>;
+
+  /**
+   * Obtains the network device name of the given object.
+   * @param obj - The object to get the device name from
+   * @returns Device name string or null if not convertible
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getIfnameOf
+   */
+  function getIfnameOf(obj: Protocol | Device | WifiDevice | WifiNetwork | string): string | null;
+
+  /**
+   * Get the topologies of all swconfig switches found on the system.
+   * @returns Promise resolving to an object of switch name to topology
+   * @see https://openwrt.github.io/luci/jsapi/LuCI.network.html#getSwitchTopologies
+   */
+  function getSwitchTopologies(): Promise<Record<string, SwitchTopology>>;
 }
