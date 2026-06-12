@@ -1,4 +1,30 @@
 declare namespace LuCI.rpc {
+  // -----------------------------------------------------------------------
+  //  Generic helper types for rpc.declare()
+  // -----------------------------------------------------------------------
+
+  /**
+   * Constrains the `params` option array length to match the args tuple `A`.
+   * When `A` is empty (`[]`), params must be omitted (`never`);
+   * otherwise params must be a `readonly string[]` of the same length.
+   */
+  type ParamsForArgs<A extends unknown[]> = A extends []
+    ? never
+    : { length: A["length"] } & readonly string[];
+
+  /**
+   * When the generic `R` parameter is omitted (defaults to `unknown`),
+   * the declared function returns `undefined` — matching the case where
+   * no `expect` option is given.
+   */
+  type InferReturn<R> = unknown extends R ? undefined : R;
+
+  /**
+   * Signature of the generated RPC invocation function.
+   * Accepts args of type `A` and returns a `Promise<R>`.
+   */
+  type RpcFn<A extends unknown[], R> = (...args: A) => Promise<R>;
+
   /**
    * Options for declaring a remote RPC call procedure.
    * @see https://openwrt.github.io/luci/jsapi/LuCI.rpc.html#.DeclareOptions
@@ -11,7 +37,7 @@ declare namespace LuCI.rpc {
     /** Lists the named parameters expected by the remote ubus RPC method. */
     params?: string[];
     /** Describes the expected return data structure. */
-    expect?: Record<string, any>;
+    expect?: Record<string, unknown>;
     /** Specifies an optional filter function which is invoked to transform the received reply data. */
     filter?: filterFn;
     /** If set to true, non-zero ubus call status codes are treated as fatal error. Default: false */
@@ -22,34 +48,47 @@ declare namespace LuCI.rpc {
    * The generated invocation function encapsulates a single RPC method call.
    * @see https://openwrt.github.io/luci/jsapi/LuCI.rpc.html#.invokeFn
    */
-  type invokeFn = (...params: any[]) => Promise<any>;
+  type invokeFn = (...params: unknown[]) => Promise<unknown>;
 
   /**
    * The filter function is invoked to transform a received ubus RPC call reply.
-   * @param data The received ubus reply data or a subset of it as described in the expect option.
-   * @param args The arguments the RPC method has been invoked with.
-   * @param extraArgs All extraneous arguments passed to the RPC method exceeding the declared arguments.
-   * @returns The return value of the filter function will be returned to the caller of the RPC method as-is.
+   *
+   * @param data - The received ubus reply data or a subset of it as described
+   *   in the `expect` option. In case of remote call errors, `data` is a
+   *   numeric ubus error code instead.
+   * @param args - The arguments the RPC method has been invoked with.
+   * @param extraArgs - All extraneous arguments exceeding the number of
+   *   parameters described in the RPC call declaration.
+   * @returns The return value is passed back to the caller as-is.
    * @see https://openwrt.github.io/luci/jsapi/LuCI.rpc.html#.filterFn
    */
-  type filterFn = (data: any, args: any[], ...extraArgs: any[]) => any;
+  type filterFn = (data: unknown, args: unknown[], ...extraArgs: unknown[]) => unknown;
 
   /**
-   * Registered interceptor functions are invoked before the standard reply parsing and handling logic.
-   * @param msg The unprocessed, JSON decoded remote RPC method call reply.
-   * @param req The related request object which is an extended variant of the declaration object.
-   * @returns Interceptor functions may return a promise to defer response processing until some delayed work completed.
+   * Registered interceptor functions are invoked before the standard reply
+   * parsing and handling logic.
+   *
+   * @param msg - The received JSON-RPC message object.
+   * @param req - The internal request representation.
+   * @returns If the function returns a Promise, the interceptor chain awaits
+   *   it; otherwise the return value is ignored.
    * @see https://openwrt.github.io/luci/jsapi/LuCI.rpc.html#.interceptorFn
    */
-  type interceptorFn = (msg: any, req: any) => Promise<any> | any;
+  type interceptorFn = (msg: unknown, req: unknown) => Promise<unknown> | unknown;
 
   /**
    * Describes a remote RPC call procedure and returns a function implementing it.
-   * @param options The options describing the RPC call.
-   * @returns A new function implementing the method call described in options.
+   *
+   * @typeParam R - Expected return type (omit for `undefined` return).
+   * @typeParam A - Args tuple matching the positional parameters.
+   * @param options - The RPC method declaration options.
+   * @returns A function that invokes the remote ubus method.
    * @see https://openwrt.github.io/luci/jsapi/LuCI.rpc.html#declare
    */
-  function declare(options: DeclareOptions): invokeFn;
+  function declare<R, A extends unknown[]>(
+    options: DeclareOptions & { params?: ParamsForArgs<A> }
+  ): RpcFn<A, InferReturn<R>>;
+  function declare(options?: DeclareOptions): invokeFn;
 
   /**
    * Lists available remote ubus objects or the method signatures of specific objects.
