@@ -20,28 +20,48 @@ declare namespace LuCI.ui {
    */
   class changes {
     /**
-     * Display the changes dialog
-     * Shows a modal dialog listing pending changes with options to apply or discard them.
-     * @returns A promise that resolves when the dialog is closed
-     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#display
+     * Display the current changelog.
+     * Open a modal dialog visualizing the currently staged UCI changes and offer
+     * options to revert or apply the shown changes.
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#displayChanges
      */
-    display(): Promise<void>;
+    displayChanges(): void;
 
     /**
-     * Apply pending changes
-     * Attempts to apply all pending configuration changes and reload the page on success.
-     * @returns A promise that resolves when changes have been applied
+     * Apply the staged configuration changes.
+     * Start applying staged configuration changes and open a modal dialog with
+     * a progress indication to prevent interaction with the view during the apply
+     * process. The modal dialog will be automatically closed and the current view
+     * reloaded once the apply process is complete.
+     * @param checked - Whether to perform a checked configuration apply (true) or
+     *                   an unchecked one (false, default).
      * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#apply
      */
-    apply(): Promise<void>;
+    apply(checked?: boolean): void;
 
     /**
-     * Reset pending changes
-     * Discards all pending changes and restores the UI to the last saved state.
-     * @returns A promise that resolves when changes have been reset
-     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#reset
+     * Update the change count indicator.
+     * @param changes - The UCI changeset to count.
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#renderChangeIndicator
      */
-    reset(): Promise<void>;
+    renderChangeIndicator(changes: Record<string, uci.ChangeRecord[]>): void;
+
+    /**
+     * Revert the staged configuration changes.
+     * Start reverting staged configuration changes and open a modal dialog with
+     * a progress indication to prevent interaction with the view during the revert
+     * process. The modal dialog will be automatically closed and the current view
+     * reloaded once the revert process is complete.
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#revert
+     */
+    revert(): void;
+
+    /**
+     * Set the change count indicator.
+     * @param n - The number of changes to indicate.
+     * @see https://openwrt.github.io/luci/jsapi/LuCI.ui.changes.html#setIndicator
+     */
+    setIndicator(n: number): void;
   }
 
   /**
