@@ -21,38 +21,6 @@ declare namespace LuCI {
     handleSaveApply?(): Promise<void>;
     handleReset?(): Promise<void>;
   }
-  interface FS {
-    write(path: string, content: string): Promise<void>;
-    read_direct(path: string, format?: "text" | "json" | "blob"): Promise<any>;
-    exec(
-      command: string,
-      args?: string[],
-    ): Promise<{ stdout: string; stderr: string }>;
-  }
-  interface Form {
-    Value: typeof LuCI.form.CBIValue;
-    TextValue: typeof LuCI.form.CBIValue;
-    SectionValue: typeof LuCI.form.CBIValue;
-    NamedSection: typeof LuCI.form.CBIValue;
-    TypedSection: typeof LuCI.form.CBIValue;
-    Flag: typeof LuCI.form.CBIValue;
-    ListValue: typeof LuCI.form.CBIValue;
-    DynamicList: typeof LuCI.form.CBIValue;
-    Button: typeof LuCI.form.CBIValue;
-    GridSection: typeof LuCI.form.CBIValue;
-    DummyValue: typeof LuCI.form.CBIValue;
-    Map: typeof LuCI.form.CBIMap;
-  }
-
-  interface UI {
-    addNotification(
-      title?: string | null,
-      message: string | HTMLElement,
-      type?: "info" | "warning" | "error",
-    ): void;
-    showModal(title: string, content: HTMLElement | string): void;
-    hideModal(): void;
-  }
 
   type ParamsForArgs<Args extends any[]> = Args extends []
     ? never
@@ -60,27 +28,6 @@ declare namespace LuCI {
 
   type InferReturn<R> = unknown extends R ? undefined : R;
   type RpcFn<A extends readonly any[], R> = (...args: A) => Promise<R>;
-  interface RPC {
-    declare<R = unknown, Args extends any[] = []>(options: {
-      object: string;
-      method: string;
-      params?: ParamsForArgs<Args>;
-    }): RpcFn<Args, InferReturn<R>>;
-  }
-  interface UCI {
-    load(config: string): Promise<void>;
-    get(config: string, section: string, option?: string): any;
-    set(config: string, section: string, option: string, value: any): void;
-    unset(config: string, section: string, option?: string): void;
-    add(config: string, type: string, name?: string): string;
-    remove(config: string, section: string): void;
-    save(): Promise<void>;
-    apply(): Promise<void>;
-    sections(config: string, type?: string): Array<LuCI.uci.SectionObject>;
-  }
-  interface POLL {
-    add(fn: () => Promise<any> | any, interval?: number): void;
-  }
 
   /**
    * Environment settings used by the LuCI runtime
@@ -135,12 +82,12 @@ declare const L: {
   view: typeof LuCI.View & {
     extend<TN>(proto: Partial<View<TN>>): View<TN>;
   };
-  form: LuCI.Form;
-  fs: LuCI.FS;
-  ui: LuCI.UI;
-  rpc: LuCI.RPC;
-  uci: LuCI.UCI;
-  Poll: LuCI.POLL;
+  form: typeof LuCI.form;
+  fs: typeof LuCI.fs;
+  ui: typeof LuCI.ui;
+  rpc: typeof LuCI.rpc;
+  uci: typeof LuCI.uci;
+  Poll: typeof LuCI.poll;
   /** Legacy L.Request class alias (deprecated) */
   Request: new (...args: any[]) => any;
   /** Legacy L.dom class alias (deprecated) */
