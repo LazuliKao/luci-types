@@ -4,23 +4,6 @@
  */
 
 declare namespace LuCI {
-  namespace uci {
-    interface SectionObject {
-      [x: string]: string | number | boolean | string[];
-      ".anonymous"?: boolean;
-      ".index"?: number;
-      ".name"?: string;
-      ".type"?: string;
-      ".create"?: string;
-    }
-  }
-  declare class View<T extends {} = any> {
-    load(): Promise<T>;
-    render?(data?: T): Promise<Node> | Node;
-    handleSave?(): Promise<void>;
-    handleSaveApply?(): Promise<void>;
-    handleReset?(): Promise<void>;
-  }
 
   type ParamsForArgs<Args extends any[]> = Args extends []
     ? never
@@ -79,8 +62,8 @@ declare namespace LuCI {
 
 // Global LuCI objects available via LuCI 'require' lines
 declare const L: {
-  view: typeof LuCI.View & {
-    extend<TN>(proto: Partial<View<TN>>): View<TN>;
+  view: typeof LuCI.view & {
+      extend<TN extends {}>(proto: Partial<typeof LuCI.view>): typeof LuCI.view & TN;
   };
   form: typeof LuCI.form;
   fs: typeof LuCI.fs;
