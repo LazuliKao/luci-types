@@ -1,78 +1,81 @@
 {
-  "name": "@lazulikao/luci-types",
-  "version": "0.2.0",
-  "description": "TypeScript type definitions and dev tools for LuCI (OpenWrt web framework)",
-  "type": "module",
-  "keywords": [
-    "luci",
-    "openwrt",
-    "typescript",
-    "types"
-  ],
-  "author": "lazulikao",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/lazulikao/luci-types.git"
-  },
-  "types": "index.d.ts",
-  "bin": {
-    "luci-types": "./bin/luci-types.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./index.d.ts"
-    },
-    "./i18n": {
-      "types": "./src/i18n/index.ts",
-      "import": "./src/i18n/index.ts"
-    },
-    "./dev": {
-      "types": "./src/dev/index.ts",
-      "import": "./src/dev/index.ts"
-    },
-    "./jsx-runtime": {
-      "types": "./src/jsx/jsx-runtime.ts",
-      "import": "./src/jsx/jsx-runtime.ts",
-      "default": "./src/jsx/jsx-runtime.ts"
-    },
-    "./jsx-dev-runtime": {
-      "types": "./src/jsx/jsx-dev-runtime.ts",
-      "import": "./src/jsx/jsx-dev-runtime.ts",
-      "default": "./src/jsx/jsx-dev-runtime.ts"
-    },
-    "./jsx-factory": {
-      "types": "./src/jsx/jsx-factory.ts",
-      "import": "./src/jsx/jsx-factory.ts",
-      "default": "./src/jsx/jsx-factory.ts"
-    }
-  },
-  "engines": {
-    "node": ">=18.18.0"
-  },
-  "files": [
-    "index.d.ts",
-    "bin/",
-    "luci.d.ts",
-    "luci/",
-    "jsx.d.ts",
-    "src/"
-  ],
-  "scripts": {
-    "check": "tsc --noEmit",
-    "validate-api": "tsx scripts/validate-api.ts"
-  },
-  "dependencies": {
-    "chokidar": "^5.0.0",
-    "ssh2": "^1.17.0",
-    "tsx": "^4.22.2",
-    "typescript": "^6.0.3"
-  },
-  "devDependencies": {
-    "@types/node": "^22.19.0",
-    "@types/ssh2": "^1.15.5"
-  },
-  "volta": {
-    "node": "25.9.0"
-  }
+	"name": "@lazulikao/luci-types",
+	"version": "0.2.0",
+	"description": "TypeScript type definitions and dev tools for LuCI (OpenWrt web framework)",
+	"type": "module",
+	"keywords": [
+		"luci",
+		"openwrt",
+		"typescript",
+		"types"
+	],
+	"author": "lazulikao",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/lazulikao/luci-types.git"
+	},
+	"types": "index.d.ts",
+	"bin": {
+		"luci-types": "./bin/luci-types.js"
+	},
+	"exports": {
+		".": {
+			"types": "./index.d.ts"
+		},
+		"./i18n": {
+			"types": "./src/i18n/index.ts",
+			"import": "./src/i18n/index.ts"
+		},
+		"./dev": {
+			"types": "./src/dev/index.ts",
+			"import": "./src/dev/index.ts"
+		},
+		"./jsx-runtime": {
+			"types": "./src/jsx/jsx-runtime.ts",
+			"import": "./src/jsx/jsx-runtime.ts",
+			"default": "./src/jsx/jsx-runtime.ts"
+		},
+		"./jsx-dev-runtime": {
+			"types": "./src/jsx/jsx-dev-runtime.ts",
+			"import": "./src/jsx/jsx-dev-runtime.ts",
+			"default": "./src/jsx/jsx-dev-runtime.ts"
+		},
+		"./jsx-factory": {
+			"types": "./src/jsx/jsx-factory.ts",
+			"import": "./src/jsx/jsx-factory.ts",
+			"default": "./src/jsx/jsx-factory.ts"
+		}
+	},
+	"engines": {
+		"node": ">=18.18.0"
+	},
+	"files": [
+		"index.d.ts",
+		"bin/",
+		"luci.d.ts",
+		"luci/",
+		"jsx.d.ts",
+		"src/"
+	],
+	"scripts": {
+		"check": "tsc --noEmit",
+		"validate-api": "tsx scripts/validate-api.ts",
+		"lint": "biome lint --no-errors-on-unmatched",
+		"format": "biome format --write --no-errors-on-unmatched "
+	},
+	"dependencies": {
+		"chokidar": "^5.0.0",
+		"ssh2": "^1.17.0",
+		"tsx": "^4.22.2",
+		"typescript": "^6.0.3"
+	},
+	"devDependencies": {
+		"@types/node": "^22.19.0",
+		"@types/ssh2": "^1.15.5",
+		"@biomejs/biome": "^2.5.0"
+	},
+	"volta": {
+		"node": "25.9.0"
+	}
 }

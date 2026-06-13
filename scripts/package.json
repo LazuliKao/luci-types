@@ -1,12 +1,12 @@
 {
-  "name": "luci-types-validate",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "typescript": "^6.0.3",
-    "tsx": "^4.22.2"
-  },
-  "devDependencies": {
-    "@types/node": "^22.19.0"
-  }
+	"name": "luci-types-validate",
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"typescript": "^6.0.3",
+		"tsx": "^4.22.2"
+	},
+	"devDependencies": {
+		"@types/node": "^22.19.0"
+	}
 }

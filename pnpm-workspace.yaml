@@ -6,3 +6,12 @@ allowBuilds:
   ssh2: true
 minimumReleaseAgeExclude:
   - tsx@4.22.2
+  - '@biomejs/biome@2.5.0'
+  - '@biomejs/cli-darwin-arm64@2.5.0'
+  - '@biomejs/cli-darwin-x64@2.5.0'
+  - '@biomejs/cli-linux-arm64-musl@2.5.0'
+  - '@biomejs/cli-linux-arm64@2.5.0'
+  - '@biomejs/cli-linux-x64-musl@2.5.0'
+  - '@biomejs/cli-linux-x64@2.5.0'
+  - '@biomejs/cli-win32-arm64@2.5.0'
+  - '@biomejs/cli-win32-x64@2.5.0'

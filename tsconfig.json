@@ -1,23 +1,14 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "module": "esnext",
-    "lib": [
-      "ES2024",
-      "DOM"
-    ],
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "types": [
-      "node"
-    ]
-  },
-  "include": [
-    "**/*.d.ts",
-    "index.d.ts",
-    "src/**/*.ts"
-  ]
+	"compilerOptions": {
+		"target": "es6",
+		"module": "esnext",
+		"lib": ["ES2024", "DOM"],
+		"strict": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
+		"types": ["node"]
+	},
+	"include": ["**/*.d.ts", "index.d.ts", "src/**/*.ts"]
 }

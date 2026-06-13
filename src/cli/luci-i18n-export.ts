@@ -37,7 +37,9 @@ async function main(): Promise<void> {
 	}
 
 	if (options.translate && options.po === undefined) {
-		throw new Error("--translate requires --po because translated values are written to PO msgstr entries.");
+		throw new Error(
+			"--translate requires --po because translated values are written to PO msgstr entries.",
+		);
 	}
 
 	if (
@@ -61,7 +63,9 @@ async function main(): Promise<void> {
 		cachePath: options.translate ? options.cache : undefined,
 		batchSize: options.batchSize,
 		onTranslateProgress: ({ batch, batches, size }) => {
-			console.log(`Translating batch ${batch}/${batches} (${size} string(s))...`);
+			console.log(
+				`Translating batch ${batch}/${batches} (${size} string(s))...`,
+			);
 		},
 	});
 
@@ -152,7 +156,10 @@ function parseArgs(args: readonly string[]): CliOptions {
 				break;
 			case "--batch-size":
 				index += 1;
-				options.batchSize = readPositiveInteger(readValue(args, index, arg), arg);
+				options.batchSize = readPositiveInteger(
+					readValue(args, index, arg),
+					arg,
+				);
 				break;
 			case "--api-url":
 				index += 1;

@@ -16,7 +16,10 @@ export class FileWatcher {
 	}
 
 	private shouldUpload(filePath: string): boolean {
-		if (!this.config.uploadExtensions || this.config.uploadExtensions.length === 0) {
+		if (
+			!this.config.uploadExtensions ||
+			this.config.uploadExtensions.length === 0
+		) {
 			return true;
 		}
 		return this.config.uploadExtensions.some((ext) => filePath.endsWith(ext));
@@ -47,7 +50,10 @@ export class FileWatcher {
 				let longestMatchLen = -1;
 				for (let i = 0; i < this.config.localDistPaths.length; i++) {
 					const localPath = this.config.localDistPaths[i];
-					if (absoluteFile.startsWith(localPath) && localPath.length > longestMatchLen) {
+					if (
+						absoluteFile.startsWith(localPath) &&
+						localPath.length > longestMatchLen
+					) {
 						matchIndex = i;
 						longestMatchLen = localPath.length;
 					}
@@ -71,7 +77,7 @@ export class FileWatcher {
 	start(): void {
 		console.log(`📂 Watching:\n  ${this.config.localDistPaths.join("\n  ")}`);
 		console.log(
-			`📤 Uploading to:\n  ${this.config.remotePaths.map(p => `${this.config.sshUsername}@${this.config.sshHost}:${p}`).join("\n  ")}\n`,
+			`📤 Uploading to:\n  ${this.config.remotePaths.map((p) => `${this.config.sshUsername}@${this.config.sshHost}:${p}`).join("\n  ")}\n`,
 		);
 
 		this.watcher = watch(this.config.localDistPaths, {

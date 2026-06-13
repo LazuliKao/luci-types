@@ -61,13 +61,21 @@ export function loadDevRemoteConfig(projectRoot?: string): DevRemoteConfig {
 
 	const remotePathEnv = env.SSH_REMOTE_PATH;
 	if (!remotePathEnv) throw new Error("SSH_REMOTE_PATH is required in .env");
-	const remotePaths = remotePathEnv.split(",").map(p => p.trim()).filter(Boolean);
+	const remotePaths = remotePathEnv
+		.split(",")
+		.map((p) => p.trim())
+		.filter(Boolean);
 
 	const localDistPathEnv = env.LOCAL_DIST_PATH || "./dist";
-	const localDistPaths = localDistPathEnv.split(",").map(p => resolve(root, p.trim())).filter(Boolean);
+	const localDistPaths = localDistPathEnv
+		.split(",")
+		.map((p) => resolve(root, p.trim()))
+		.filter(Boolean);
 
 	if (remotePaths.length !== localDistPaths.length) {
-		throw new Error("SSH_REMOTE_PATH and LOCAL_DIST_PATH must have the same number of comma-separated paths");
+		throw new Error(
+			"SSH_REMOTE_PATH and LOCAL_DIST_PATH must have the same number of comma-separated paths",
+		);
 	}
 
 	const buildCommand = env.BUILD_COMMAND;
@@ -83,7 +91,9 @@ export function loadDevRemoteConfig(projectRoot?: string): DevRemoteConfig {
 	if (env.SSH_PRIVATE_KEY_PATH) {
 		const resolved = resolveKeyPath(env.SSH_PRIVATE_KEY_PATH);
 		if (!existsSync(resolved)) {
-			console.warn(`⚠️  Private key not found at ${resolved}, falling back to password`);
+			console.warn(
+				`⚠️  Private key not found at ${resolved}, falling back to password`,
+			);
 		} else {
 			sshPrivateKeyPath = resolved;
 		}

@@ -102,7 +102,9 @@ export class SshUploader {
 				return;
 			} catch (err) {
 				if (attempt < maxRetries) {
-					console.warn(`⚠️  Upload failed, retrying (${attempt + 1}/${maxRetries})...`);
+					console.warn(
+						`⚠️  Upload failed, retrying (${attempt + 1}/${maxRetries})...`,
+					);
 					this.client = null;
 				} else {
 					throw err;

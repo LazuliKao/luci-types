@@ -7,9 +7,7 @@ export interface DevRemoteOptions {
 	projectRoot?: string;
 }
 
-export async function devRemote(
-	config: DevRemoteConfig,
-): Promise<void> {
+export async function devRemote(config: DevRemoteConfig): Promise<void> {
 	let buildProcess: ChildProcess | null = null;
 	const uploader = new SshUploader(config);
 	const watcher = new FileWatcher(config, uploader);
