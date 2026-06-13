@@ -1,6 +1,6 @@
-import { Client, type ConnectConfig } from "ssh2";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
+import { Client, type ConnectConfig, type SFTPWrapper } from "ssh2";
 import type { DevRemoteConfig } from "./config.ts";
 
 export class SshUploader {
@@ -68,6 +68,60 @@ export class SshUploader {
 		});
 	}
 
+	private ensureDir(sftp: SFTPWrapper, dirPath: string): Promise<void> {
+		const cleanPath = dirPath.replace(/\/+$/, "");
+		if (!cleanPath) return Promise.resolve();
+
+		return new Promise((resolve, reject) => {
+			sftp.stat(cleanPath, (statErr, stats) => {
+				if (!statErr && stats) {
+					if (stats.isDirectory()) {
+						return resolve();
+					}
+					return reject(
+						new Error(`${cleanPath} exists but is not a directory`),
+					);
+				}
+
+				const lastSlash = cleanPath.lastIndexOf("/");
+				if (lastSlash > 0) {
+					const parent = cleanPath.substring(0, lastSlash);
+					this.ensureDir(sftp, parent)
+						.then(() => {
+							sftp.mkdir(cleanPath, (mkdirErr) => {
+								if (mkdirErr) {
+									sftp.stat(cleanPath, (statErr2, stats2) => {
+										if (!statErr2 && stats2 && stats2.isDirectory()) {
+											resolve();
+										} else {
+											reject(mkdirErr);
+										}
+									});
+								} else {
+									resolve();
+								}
+							});
+						})
+						.catch(reject);
+				} else {
+					sftp.mkdir(cleanPath, (mkdirErr) => {
+						if (mkdirErr) {
+							sftp.stat(cleanPath, (statErr2, stats2) => {
+								if (!statErr2 && stats2 && stats2.isDirectory()) {
+									resolve();
+								} else {
+									reject(mkdirErr);
+								}
+							});
+						} else {
+							resolve();
+						}
+					});
+				}
+			});
+		});
+	}
+
 	async upload(localPath: string, remotePath: string): Promise<void> {
 		const client = await this.ensureConnection();
 
@@ -78,15 +132,32 @@ export class SshUploader {
 					return reject(err);
 				}
 
-				const content = readFileSync(localPath);
-				sftp.writeFile(remotePath, content, (writeErr) => {
-					if (writeErr) {
-						this.client = null;
-						return reject(writeErr);
-					}
-					console.log(`✅ Uploaded: ${basename(localPath)} -> ${remotePath}`);
-					resolve();
-				});
+				const remoteDir = remotePath.includes("/")
+					? remotePath.substring(0, remotePath.lastIndexOf("/"))
+					: "";
+
+				const doWrite = () => {
+					const content = readFileSync(localPath);
+					sftp.writeFile(remotePath, content, (writeErr) => {
+						if (writeErr) {
+							this.client = null;
+							return reject(writeErr);
+						}
+						console.log(`✅ Uploaded: ${basename(localPath)} -> ${remotePath}`);
+						resolve();
+					});
+				};
+
+				if (remoteDir) {
+					this.ensureDir(sftp, remoteDir)
+						.then(doWrite)
+						.catch((mkdirErr) => {
+							this.client = null;
+							reject(mkdirErr);
+						});
+				} else {
+					doWrite();
+				}
 			});
 		});
 	}

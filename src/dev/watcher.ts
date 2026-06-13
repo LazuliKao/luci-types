@@ -1,7 +1,7 @@
-import { watch, type FSWatcher } from "chokidar";
-import { basename, resolve } from "node:path";
+import { basename, isAbsolute, relative, resolve } from "node:path";
+import { type FSWatcher, watch } from "chokidar";
 import type { DevRemoteConfig } from "./config.ts";
-import { SshUploader } from "./uploader.ts";
+import type { SshUploader } from "./uploader.ts";
 
 export class FileWatcher {
 	private watcher: FSWatcher | null = null;
@@ -50,10 +50,9 @@ export class FileWatcher {
 				let longestMatchLen = -1;
 				for (let i = 0; i < this.config.localDistPaths.length; i++) {
 					const localPath = this.config.localDistPaths[i];
-					if (
-						absoluteFile.startsWith(localPath) &&
-						localPath.length > longestMatchLen
-					) {
+					const relPath = relative(localPath, absoluteFile);
+					const isInside = !relPath.startsWith("..") && !isAbsolute(relPath);
+					if (isInside && localPath.length > longestMatchLen) {
 						matchIndex = i;
 						longestMatchLen = localPath.length;
 					}
@@ -64,9 +63,16 @@ export class FileWatcher {
 					continue;
 				}
 
-				const fileName = basename(file);
+				const localDistPath = this.config.localDistPaths[matchIndex];
+				const relativePath = relative(localDistPath, absoluteFile).replace(
+					/\\/g,
+					"/",
+				);
 				const remotePathDir = this.config.remotePaths[matchIndex];
-				const remoteFilePath = `${remotePathDir}/${fileName}`;
+				const cleanRemoteDir = remotePathDir.endsWith("/")
+					? remotePathDir.slice(0, -1)
+					: remotePathDir;
+				const remoteFilePath = `${cleanRemoteDir}/${relativePath}`;
 				await this.uploader.uploadWithRetry(file, remoteFilePath);
 			} catch (err) {
 				console.error(`❌ Upload failed for ${file}:`, err);
