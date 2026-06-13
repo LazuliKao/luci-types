@@ -85,7 +85,7 @@ declare namespace LuCI.rpc {
    * @returns A function that invokes the remote ubus method.
    * @see https://openwrt.github.io/luci/jsapi/LuCI.rpc.html#declare
    */
-  function declare<R, A extends unknown[]>(
+  function declare<R, A extends unknown[] = []>(
     options: DeclareOptions & { params?: ParamsForArgs<A> }
   ): RpcFn<A, InferReturn<R>>;
   function declare(options?: DeclareOptions): invokeFn;
