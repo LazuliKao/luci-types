@@ -114,7 +114,7 @@ declare namespace LuCI.ui {
 			/** Whether the menu entry's underlying ACLs are readonly */
 			readonly?: boolean;
 			/** Array of child menu nodes */
-			children?: MenuNode[];
+			children?: Record<string, menu.MenuNode>;
 		}
 	}
 

@@ -37,7 +37,7 @@ declare namespace LuCI {
 		 * @returns Any return values of this function are discarded, but passed through Promise.resolve() to ensure that any returned promise runs to completion before the button is re-enabled.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.view.html#handleSave
 		 */
-		handleSave(ev: Event): any | Promise<any>;
+		handleSave: null | ((ev: Event) => any | Promise<any>);
 
 		/**
 		 * The handleSaveApply function is invoked when the user clicks the Save & Apply button in the page action footer.
@@ -51,7 +51,7 @@ declare namespace LuCI {
 		 * @returns Any return values of this function are discarded, but passed through Promise.resolve() to ensure that any returned promise runs to completion before the button is re-enabled.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.view.html#handleSaveApply
 		 */
-		handleSaveApply(ev: Event, mode: number): any | Promise<any>;
+		handleSaveApply: null | ((ev: Event, mode: number) => any | Promise<any>);
 
 		/**
 		 * The handleReset function is invoked when the user clicks the Reset button in the page action footer.
@@ -64,7 +64,7 @@ declare namespace LuCI {
 		 * @returns Any return values of this function are discarded, but passed through Promise.resolve() to ensure that any returned promise runs to completion before the button is re-enabled.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.view.html#handleReset
 		 */
-		handleReset(ev: Event): any | Promise<any>;
+		handleReset: null | ((ev: Event) => any | Promise<any>);
 
 		/**
 		 * Renders a standard page action footer if any of the handleSave(), handleSaveApply() or handleReset() functions are defined.
