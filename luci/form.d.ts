@@ -123,7 +123,7 @@ declare namespace LuCI.form {
 		/**
 		 * Reference to the parent Map instance containing this section.
 		 */
-		map: Map;
+		map: MapElement;
 
 		/**
 		 * The UCI configuration name this section belongs to.
@@ -657,7 +657,7 @@ declare namespace LuCI.form {
 		 * was specified.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractValue.html#textvalue
 		 */
-		textvalue(section_id: string): string;
+		textvalue(section_id: string): string | Node;
 
 		/**
 		 * Obtain the underlying `LuCI.ui` element instance.
@@ -1526,14 +1526,14 @@ declare namespace LuCI.form {
 	}
 
 	/**
-	 * The `Map` class represents one complete form. A form usually maps one UCI
+	 * The `MapElement` class represents one complete form. A form usually maps one UCI
 	 * configuration file and is divided into multiple sections containing multiple
 	 * fields each. It serves as the main entry point into the `LuCI.form` for
 	 * typical view code.
 	 *
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Map.html
 	 */
-	class Map extends AbstractElement {
+	class MapElement extends AbstractElement {
 		/**
 		 * Toggle readonly state of the form.
 		 *
@@ -1775,7 +1775,7 @@ declare namespace LuCI.form {
 	 *
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.JSONMap.html
 	 */
-	class JSONMap extends Map {
+	class JSONMap extends MapElement {
 		/**
 		 * Create a new JSONMap instance.
 		 *
