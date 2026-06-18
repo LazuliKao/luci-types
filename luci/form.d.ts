@@ -49,7 +49,7 @@ declare namespace LuCI.form {
 		 * elements.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractElement.html#render
 		 */
-		render(): Node | Promise<Node>;
+		render(sectionId: string, optionIndex: number, cfgvalue: unknown): Node | Promise<Node>;
 
 		/**
 		 * Strip any HTML tags from the given input string, and decode HTML entities.
@@ -868,7 +868,7 @@ declare namespace LuCI.form {
 		 * elements.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Value.html#render
 		 */
-		render(): Node | Promise<Node>;
+		render(sectionId: string, optionIndex: number, cfgvalue: unknown): Node | Promise<Node>;
 	}
 
 	/**
@@ -1676,7 +1676,7 @@ declare namespace LuCI.form {
 		 * @override
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Map.html#render
 		 */
-		render(): Promise<Node>;
+		render(sectionId: string, optionIndex: number, cfgvalue: unknown): Promise<Node>;
 
 		/**
 		 * Return all DOM nodes within this Map which match the given search
@@ -1869,7 +1869,7 @@ declare namespace LuCI.form {
 		 * @override
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.NamedSection.html#render
 		 */
-		render(): Node | Promise<Node>;
+		render(sectionId: string, optionIndex: number, cfgvalue: unknown): Node | Promise<Node>;
 	}
 
 	/**
@@ -1982,7 +1982,7 @@ declare namespace LuCI.form {
 		 * @override
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.TypedSection.html#render
 		 */
-		render(): Node | Promise<Node>;
+		render(sectionId: string, optionIndex: number, cfgvalue: unknown): Node | Promise<Node>;
 	}
 
 	/**
