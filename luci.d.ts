@@ -54,6 +54,35 @@ declare namespace LuCI {
 }
 
 // Global LuCI objects available via LuCI 'require' lines
+type RequireModuleName = keyof LuCI.RequireModuleMap;
+
+declare namespace LuCI {
+	type RequireModuleMap = {
+		baseclass: typeof LuCI.baseclass;
+		cbi: typeof LuCI.cbi;
+		dom: typeof LuCI.dom;
+		firewall: LuCI.firewall.FirewallInstance;
+		form: typeof LuCI.form;
+		fs: typeof LuCI.fs;
+		headers: typeof LuCI.headers;
+		network: typeof LuCI.network;
+		poll: typeof LuCI.poll;
+		request: typeof LuCI.request;
+		response: LuCI.response.Response;
+		rpc: typeof LuCI.rpc;
+		session: typeof LuCI.session;
+		uci: typeof LuCI.uci;
+		ui: typeof LuCI.ui;
+		validation: typeof LuCI.validation;
+		view: typeof LuCI.view;
+		xhr: typeof LuCI.xhr.xhr;
+		"tools.password": LuCI.tools.password.PasswordChecker;
+		"tools.prng": LuCI.tools.prng.PRNG;
+		"tools.views": LuCI.tools.views.ViewsModule;
+		"tools.widgets": LuCI.tools.widgets.WidgetsModule;
+	};
+}
+
 declare const L: {
 	view: typeof LuCI.view & {
 		extend<TN extends {}>(
@@ -169,6 +198,10 @@ declare const L: {
 	raise(type?: Error | string, fmt?: string, ...args: unknown[]): never;
 
 	/** Load an additional LuCI JavaScript class and return the instantiated class. */
+	require<N extends RequireModuleName>(
+		name: N,
+		from?: string[],
+	): Promise<LuCI.RequireModuleMap[N]>;
 	require(name: string, from?: string[]): Promise<unknown>;
 
 	/** Returns a promise resolving with either the given value or the default on rejection. */
