@@ -203,6 +203,22 @@ declare const L: {
 		extend(proto: Record<string, unknown>): unknown;
 	};
 };
+/**
+ * Legacy global XHR compatibility shim.
+ *
+ * Registered as `window.XHR` in LuCI for backwards compatibility with old code.
+ *
+ * @deprecated Use `LuCI.request` instead.
+ */
+declare const XHR: typeof LuCI.xhr.xhr & {
+	get: typeof LuCI.xhr.xhr.prototype.get;
+	post: typeof LuCI.xhr.xhr.prototype.post;
+	poll: typeof LuCI.poll;
+	stop: typeof LuCI.poll.stop;
+	halt: typeof LuCI.poll.stop;
+	run: typeof LuCI.poll.start;
+	running: typeof LuCI.poll.active;
+};
 
 declare const E: (
 	name: string,
