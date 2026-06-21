@@ -60,22 +60,29 @@ export class OpenAICompatibleTranslator implements Translator {
 		}
 
 		let retryFeedback: string | undefined;
+		let previousResponse: string | undefined;
 
 		for (let attempt = 1; attempt <= maxTranslationAttempts; attempt += 1) {
 			try {
-				const content = await this.#createCompletion(texts, retryFeedback);
-				const translations = parseTranslationArray(content, texts);
-				validateTranslations(texts, translations);
+				const content = await this.#createCompletion(texts, retryFeedback, previousResponse);
 
-				return new Map(
-					texts.map((text, index) => [text, translations[index] ?? ""]),
-				);
+				try {
+					const translations = parseTranslationArray(content, texts);
+					validateTranslations(texts, translations);
+
+					return new Map(
+						texts.map((text, index) => [text, translations[index] ?? ""]),
+					);
+				} catch (error) {
+					throw new TranslationValidationError(formatRetryFeedback(error), content);
+				}
 			} catch (error) {
 				if (attempt === maxTranslationAttempts) {
 					throw error;
 				}
 
 				retryFeedback = formatRetryFeedback(error);
+				previousResponse = error instanceof TranslationValidationError ? error.response : previousResponse;
 			}
 		}
 
@@ -85,8 +92,9 @@ export class OpenAICompatibleTranslator implements Translator {
 	async #createCompletion(
 		texts: readonly string[],
 		retryFeedback?: string,
+		previousResponse?: string,
 	): Promise<string> {
-		const messages: Array<{ role: "system" | "user"; content: string }> = [
+		const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
 			{
 				role: "system",
 				content: `You translate LuCI/OpenWrt web UI strings into ${this.#locale}. Return only hashline lines in this format: __01_ab12__. "translation". Copy the label exactly, keep the same order. Preserve placeholders, HTML, code, URLs, \\n, whitespace, and newline counts.`,
@@ -102,10 +110,23 @@ export class OpenAICompatibleTranslator implements Translator {
 		];
 
 		if (retryFeedback !== undefined) {
+			if (previousResponse !== undefined) {
+				messages.push({
+					role: "assistant",
+					content: previousResponse,
+				});
+			}
+
 			messages.push({
 				role: "user",
-				content:
-					`Invalid. Fix and return the full corrected hashline response with the same labels and order.\n${retryFeedback}`,
+				content: [
+					"Invalid. Fix your previous hashline output and return the full corrected hashline response with the same labels and order.",
+					"Do not translate, explain, or answer the validator feedback itself.",
+					"Use the original source lines below and correct only the affected translations.",
+					formatHashlineInput(texts),
+					"Validator feedback:",
+					retryFeedback,
+				].join("\n"),
 			});
 		}
 
@@ -195,6 +216,16 @@ function createBatchHashes(values: readonly string[]): string[] {
 		}
 
 		length += 1;
+	}
+}
+
+class TranslationValidationError extends Error {
+	readonly response: string;
+
+	constructor(message: string, response: string) {
+		super(message);
+		this.name = "TranslationValidationError";
+		this.response = response;
 	}
 }
 
@@ -359,8 +390,12 @@ function trailingWhitespace(value: string): string {
 }
 
 function formatRetryFeedback(error: unknown): string {
-	return error instanceof Error ? error.message : String(error);
+	if (error instanceof TranslationValidationError) {
+		return error.message;
 	}
+
+	return error instanceof Error ? error.message : String(error);
+}
 
 const protectedTokenPatterns: ReadonlyArray<readonly [string, RegExp]> = [
 	["printf-style placeholders", /%(?:\d+\$)?[-+#0 ]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[a-zA-Z%]/gu],
