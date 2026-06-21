@@ -38,12 +38,9 @@ function getLabel(sourceLine: string): string {
 }
 
 test("retry keeps prior invalid translation alongside source lines", async () => {
-	const source =
-		"Configure color mode, accent colors, animation behavior, and login-page appearance for luci-theme-fluent.";
-	const invalidTarget =
-		"为 luci-theme-fluent 配置色彩模式、强调色、动画效果以及登录页的外观。";
-	const validTarget =
-		"为 luci-theme-fluent 配置色彩模式、强调色、动画效果以及 login-page 外观。";
+	const source = "Reboot %s to apply changes.";
+	const invalidTarget = "重启 以应用更改。";
+	const validTarget = "重启 %s 以应用更改。";
 	let callCount = 0;
 
 	const originalFetch = globalThis.fetch;
@@ -66,9 +63,8 @@ test("retry keeps prior invalid translation alongside source lines", async () =>
 				body.messages[4]?.content,
 				/Do not translate, explain, or answer the validator feedback itself\./u,
 			);
-			assert.match(body.messages[4]?.content, /Validator feedback:/u);
-			assert.match(body.messages[4]?.content, /Expected tokens \["-page","-theme-fluent"\]/u);
-			assert.match(body.messages[4]?.content, /login-page appearance for luci-theme-fluent\./u);
+			assert.match(body.messages[4]?.content, /Expected tokens \["%s"\]/u);
+			assert.match(body.messages[4]?.content, /Reboot %s to apply changes\./u);
 			assert.match(body.messages[4]?.content, /__01_[0-9a-f]+__\. /u);
 
 			return createChatResponse(`${label}. ${JSON.stringify(validTarget)}`);

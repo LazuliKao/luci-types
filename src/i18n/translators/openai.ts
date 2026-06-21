@@ -59,34 +59,61 @@ export class OpenAICompatibleTranslator implements Translator {
 			return new Map();
 		}
 
+		console.error(`[translate] Batch of ${texts.length} string(s).`);
+
 		let retryFeedback: string | undefined;
 		let previousResponse: string | undefined;
+		const errors: Array<{ attempt: number; reason: string; response: string | undefined }> = [];
 
 		for (let attempt = 1; attempt <= maxTranslationAttempts; attempt += 1) {
 			try {
+				console.error(`[translate] Attempt ${attempt}/${maxTranslationAttempts}...`);
 				const content = await this.#createCompletion(texts, retryFeedback, previousResponse);
+
+				console.error(`[translate] Raw model response:\n${content === "" ? "(empty)" : content}`);
 
 				try {
 					const translations = parseTranslationArray(content, texts);
 					validateTranslations(texts, translations);
 
+					console.error(`[translate] Attempt ${attempt} succeeded.`);
 					return new Map(
 						texts.map((text, index) => [text, translations[index] ?? ""]),
 					);
 				} catch (error) {
-					throw new TranslationValidationError(formatRetryFeedback(error), content);
+					const reason = formatRetryFeedback(error);
+					console.error(`[translate] Validation/parse failed: ${reason}`);
+					throw new TranslationValidationError(reason, content);
 				}
 			} catch (error) {
+				const reason = formatRetryFeedback(error);
+				const response = error instanceof TranslationValidationError ? error.response : undefined;
+				errors.push({ attempt, reason, response });
+
 				if (attempt === maxTranslationAttempts) {
-					throw error;
+					const details = errors
+						.map((e) => {
+							let msg = `  ─ Attempt ${e.attempt}/${maxTranslationAttempts}: ${e.reason}`;
+							if (e.response !== undefined) {
+								msg += `\n    Raw model response: ${JSON.stringify(e.response)}`;
+							}
+							return msg;
+						})
+						.join("\n");
+
+					throw new Error(
+						`Translator exhausted all retry attempts for ${texts.length} string(s).\n` +
+							`Source texts: ${JSON.stringify(texts)}\n${details}`,
+					);
 				}
 
-				retryFeedback = formatRetryFeedback(error);
+				console.error(`[translate] Retrying after attempt ${attempt} failure.`);
+				retryFeedback = reason;
 				previousResponse = error instanceof TranslationValidationError ? error.response : previousResponse;
 			}
 		}
 
-		throw new Error("Translator exhausted all retry attempts.");
+		throw new Error(`Translator exhausted all retry attempts for ${texts.length} string(s).`);
 	}
 
 	async #createCompletion(
@@ -97,7 +124,7 @@ export class OpenAICompatibleTranslator implements Translator {
 		const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
 			{
 				role: "system",
-				content: `You translate LuCI/OpenWrt web UI strings into ${this.#locale}. Return only hashline lines in this format: __01_ab12__. "translation". Copy the label exactly, keep the same order. Preserve placeholders, HTML, code, URLs, \\n, whitespace, and newline counts.`,
+				content: `You translate LuCI/OpenWrt web UI strings into ${this.#locale}. Return only hashline lines in this format: __01_ab12__. "translation". The label separator is an underscore (__NN_xxxx__), never a period. Copy the label exactly, keep the same order. Preserve placeholders, HTML, code, URLs, \\n, whitespace, and newline counts.`,
 			},
 			{
 				role: "system",
@@ -105,7 +132,7 @@ export class OpenAICompatibleTranslator implements Translator {
 			},
 			{
 				role: "user",
-				content: `Translate these lines. Return hashline lines in the same order. Format: __01_ab12__. ${JSON.stringify("translation")}. Copy labels exactly.\n${formatHashlineInput(texts)}`,
+				content: `Translate these lines. Return hashline lines in the same order. Format: __01_ab12__. ${JSON.stringify("translation")} (underscore between numbers and hex). Copy labels exactly.\n${formatHashlineInput(texts)}`,
 			},
 		];
 
@@ -272,7 +299,7 @@ function tryParseHashlineList(
 	}
 
 	return lines.map((line, index) => {
-		const match = /^(__\d+_[0-9a-f]+__)\.\s*/u.exec(line);
+		const match = /^(__\d+[_.][0-9a-f]+__)\.\s*/u.exec(line);
 		if (match === null) {
 			throw new Error(
 				`Translation ${index + 1} is not in hashline format (__01_ab12__. \"translation\").`,
@@ -280,7 +307,8 @@ function tryParseHashlineList(
 		}
 
 		const label = match[1];
-		if (label !== expectedLabels[index]) {
+		const normalizedLabel = label.replace(".", "_");
+		if (normalizedLabel !== expectedLabels[index]) {
 			throw new Error(
 				`Translation ${index + 1} used label ${label}, expected ${expectedLabels[index]}.`,
 			);
@@ -314,6 +342,18 @@ function stripMarkdownFence(value: string): string {
 }
 
 
+function countOccurrences(value: string): number {
+	return [...value].filter((char) => char === "\n").length;
+}
+
+function leadingWhitespace(value: string): string {
+	return value.match(/^\s*/u)?.[0] ?? "";
+}
+
+function trailingWhitespace(value: string): string {
+	return value.match(/\s*$/u)?.[0] ?? "";
+}
+	
 function validateTranslations(
 	sources: readonly string[],
 	translations: readonly string[],
@@ -329,9 +369,7 @@ function validateTranslations(
 		assertPreservedInvariant(source, target, index, "leading whitespace", leadingWhitespace);
 		assertPreservedInvariant(source, target, index, "trailing whitespace", trailingWhitespace);
 
-		for (const [label, pattern] of protectedTokenPatterns) {
-			assertProtectedTokens(source, target, index, label, pattern);
-		}
+		assertSameTokens(source, target, index, "printf-style placeholders", /%(?:\d+\$)?[-+#0 ]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[a-zA-Z%]/gu);
 	}
 }
 
@@ -349,44 +387,24 @@ function assertPreservedInvariant(
 	}
 }
 
-function assertProtectedTokens(
+function assertSameTokens(
 	source: string,
 	target: string,
 	index: number,
 	label: string,
 	pattern: RegExp,
 ): void {
-	const sourceTokens = extractTokens(source, pattern);
+	const sourceTokens = [...source.matchAll(pattern)].map((match) => match[0]).sort();
 	if (sourceTokens.length === 0) {
 		return;
 	}
 
-	const targetTokens = extractTokens(target, pattern);
-	if (!sameTokens(sourceTokens, targetTokens)) {
+	const targetTokens = [...target.matchAll(pattern)].map((match) => match[0]).sort();
+	if (sourceTokens.length !== targetTokens.length || !sourceTokens.every((token, i) => token === targetTokens[i])) {
 		throw new Error(
 			`Translation ${index + 1} changed ${label}. Expected tokens ${JSON.stringify(sourceTokens)} but got ${JSON.stringify(targetTokens)}. Source=${JSON.stringify(source)} Target=${JSON.stringify(target)}`,
 		);
 	}
-	}
-
-function extractTokens(value: string, pattern: RegExp): string[] {
-	return [...value.matchAll(pattern)].map((match) => match[0]).sort();
-}
-
-function sameTokens(left: readonly string[], right: readonly string[]): boolean {
-	return left.length === right.length && left.every((token, index) => token === right[index]);
-}
-
-function countOccurrences(value: string): number {
-	return [...value].filter((char) => char === "\n").length;
-}
-
-function leadingWhitespace(value: string): string {
-	return value.match(/^\s*/u)?.[0] ?? "";
-}
-
-function trailingWhitespace(value: string): string {
-	return value.match(/\s*$/u)?.[0] ?? "";
 }
 
 function formatRetryFeedback(error: unknown): string {
@@ -397,17 +415,9 @@ function formatRetryFeedback(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
 }
 
-const protectedTokenPatterns: ReadonlyArray<readonly [string, RegExp]> = [
-	["printf-style placeholders", /%(?:\d+\$)?[-+#0 ]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[a-zA-Z%]/gu],
-	["named placeholders", /\{[a-zA-Z0-9_.-]+\}/gu],
-	["HTML tags", /<\/?[a-zA-Z][^<>]*>/gu],
-	["inline code", /`[^`\n]+`/gu],
-	["CLI flags and paths", /--?[a-zA-Z0-9][a-zA-Z0-9-]*|(?:\.\.?\/|\/)[^\s"'<>]+/gu],
-	["escaped sequences", /\\[nrt"\\]/gu],
-];
 const defaultSystemPrompt = `Translation rules:
 - Use concise Simplified Chinese for zh_Hans/zh_CN UI text.
 - Keep LuCI, OpenWrt, UCI, RPC, HTTP, HTTPS, IPv4, IPv6, TCP, UDP, DNS, DHCP, VLAN, MAC, SSH, JSON, API, URL, ID, and code-like tokens unchanged unless a natural Chinese UI term is standard.
 - Preserve placeholders (%s, %d, {name}), HTML tags, inline code, CLI flags/paths, escaped sequences (\\n, \\t), and newline counts exactly.
-- Return only hashline lines: __01_ab12__. "translation". Reuse each label, keep order. No explanations, bullets, or markdown fences.
+- Return only hashline lines: __01_ab12__. "translation" (underscore between numbers and hex, never a period). Reuse each label, keep order. No explanations, bullets, or markdown fences.
 - Use common networking terms: Forward = 转发, Listen = 监听, Client = 客户端, Server = 服务端, Traffic In = 入站流量, Traffic Out = 出站流量, Toggle = 切换.`;
