@@ -5,7 +5,7 @@ TypeScript type definitions and dev tools for the [LuCI](https://openwrt.org/doc
 ## Install
 
 ```bash
-pnpm add -D @lazulikao/luci-types
+pnpm add -D https://github.com/LazuliKao/luci-types
 ```
 
 ## Contents
