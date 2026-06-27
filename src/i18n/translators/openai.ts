@@ -147,12 +147,15 @@ export class OpenAICompatibleTranslator implements Translator {
 			messages.push({
 				role: "user",
 				content: [
-					"Invalid. Fix your previous hashline output and return the full corrected hashline response with the same labels and order.",
-					"Do not translate, explain, or answer the validator feedback itself.",
-					"Use the original source lines below and correct only the affected translations.",
+					`Your previous hashline output was invalid. Fix the errors mentioned in the validator feedback and return the full hashline response translated into ${this.#locale}.`,
+					"Ensure you use the exact expected labels shown below and keep your previous correct translations.",
+					"Do not explain, just return the corrected hashline lines.",
+					"Original source lines to translate and their expected labels:",
 					formatHashlineInput(texts),
 					"Validator feedback:",
 					retryFeedback,
+					"",
+					`CRITICAL REMINDER: Your core goal is to translate the strings into ${this.#locale}. Do NOT just copy the original source text.`
 				].join("\n"),
 			});
 		}
