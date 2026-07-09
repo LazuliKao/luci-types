@@ -909,7 +909,7 @@ declare namespace LuCI.form {
 		 * @default null
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.TextValue.html#wrap
 		 */
-		wrap: number;
+		wrap: number | false | 'off';
 	}
 
 	/**
