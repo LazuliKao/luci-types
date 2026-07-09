@@ -3,7 +3,7 @@ import path from "node:path";
 import { exportTranslations } from "../i18n/export.ts";
 import { OpenAICompatibleTranslator } from "../i18n/translators/index.ts";
 
-interface CliOptions {
+export interface CliOptions {
 	input: string[];
 	output?: string;
 	po?: string;
@@ -18,6 +18,15 @@ interface CliOptions {
 	batchSize?: number;
 	apiUrl?: string;
 	prompt?: string;
+	projectIdVersion?: string;
+	poRevisionDate?: string;
+	lastTranslator?: string;
+	languageTeam?: string;
+	language?: string;
+	mimeVersion?: string;
+	contentType?: string;
+	contentTransferEncoding?: string;
+	pluralForms?: string;
 	help: boolean;
 }
 
@@ -50,6 +59,29 @@ async function main(): Promise<void> {
 		options.output = "translations.json";
 	}
 
+	const headers =
+		options.projectIdVersion === undefined &&
+		options.poRevisionDate === undefined &&
+		options.lastTranslator === undefined &&
+		options.languageTeam === undefined &&
+		options.language === undefined &&
+		options.mimeVersion === undefined &&
+		options.contentType === undefined &&
+		options.contentTransferEncoding === undefined &&
+		options.pluralForms === undefined
+			? undefined
+			: {
+				projectIdVersion: options.projectIdVersion,
+				poRevisionDate: options.poRevisionDate,
+				lastTranslator: options.lastTranslator,
+				languageTeam: options.languageTeam,
+				language: options.language,
+				mimeVersion: options.mimeVersion,
+				contentType: options.contentType,
+				contentTransferEncoding: options.contentTransferEncoding,
+				pluralForms: options.pluralForms,
+			};
+
 	const result = await exportTranslations({
 		input: options.input,
 		output: options.output,
@@ -59,6 +91,7 @@ async function main(): Promise<void> {
 		merge: options.merge,
 		json: options.json,
 		exclude: options.exclude,
+		headers,
 		translator: options.translate ? createTranslator(options) : undefined,
 		cachePath: options.translate ? options.cache : undefined,
 		batchSize: options.batchSize,
@@ -88,7 +121,7 @@ async function main(): Promise<void> {
 	}
 }
 
-function parseArgs(args: readonly string[]): CliOptions {
+export function parseArgs(args: readonly string[]): CliOptions {
 	const options: CliOptions = {
 		input: [],
 		locale: "zh_Hans",
@@ -169,6 +202,42 @@ function parseArgs(args: readonly string[]): CliOptions {
 				index += 1;
 				options.prompt = readValue(args, index, arg);
 				break;
+			case "--project-id-version":
+				index += 1;
+				options.projectIdVersion = readValue(args, index, arg);
+				break;
+			case "--po-revision-date":
+				index += 1;
+				options.poRevisionDate = readValue(args, index, arg);
+				break;
+			case "--last-translator":
+				index += 1;
+				options.lastTranslator = readValue(args, index, arg);
+				break;
+			case "--language-team":
+				index += 1;
+				options.languageTeam = readValue(args, index, arg);
+				break;
+			case "--language":
+				index += 1;
+				options.language = readValue(args, index, arg);
+				break;
+			case "--mime-version":
+				index += 1;
+				options.mimeVersion = readValue(args, index, arg);
+				break;
+			case "--content-type":
+				index += 1;
+				options.contentType = readValue(args, index, arg);
+				break;
+			case "--content-transfer-encoding":
+				index += 1;
+				options.contentTransferEncoding = readValue(args, index, arg);
+				break;
+			case "--plural-forms":
+				index += 1;
+				options.pluralForms = readValue(args, index, arg);
+				break;
 			default:
 				if (arg.startsWith("-")) {
 					throw new Error(`Unknown option: ${arg}`);
@@ -192,6 +261,7 @@ function createTranslator(options: CliOptions): OpenAICompatibleTranslator {
 		promptPath: options.prompt,
 	});
 }
+
 
 function readTranslator(value: string): "openai" {
 	if (value === "openai") {
@@ -229,32 +299,54 @@ function printHelp(): void {
 Extract LuCI _("...") translation strings from JS/TS/JSX/TSX files.
 
 Options:
-  -i, --input <path>     Source file or directory. Repeatable.
-  -o, --output <path>    Write extracted strings as JSON. Defaults to translations.json.
-      --po <path>        Write a gettext .po file.
-  -l, --locale <locale>  Target locale for .po headers. Default: zh_Hans.
-  -p, --package <name>   Project/package name for .po metadata.
-  -m, --merge            Preserve existing msgstr values when --po already exists.
-      --exclude <name>   Directory name to exclude. Repeatable.
-      --json             Force JSON output when only --po is provided.
-      --translate        Translate extracted strings before writing --po. Requires --po.
-      --translator <name> Translator backend. Currently: openai. Default: openai.
-      --cache <path>     Translation cache JSON. Default: none.
-      --batch-size <n>   Strings per translation request. Default: 25.
-      OPENAI_MODEL       Environment variable for the model. Default: gpt-4o-mini.
-      --api-url <url>    OpenAI-compatible endpoint. Default: OPENAI_API_URL or OpenAI.
-      --prompt <path>    Extra system prompt markdown/text file.
-  -h, --help             Show this help.
+  -i, --input <path>       Source file or directory. Repeatable.
+  -o, --output <path>      Write extracted strings as JSON. Defaults to translations.json.
+      --po <path>          Write a gettext .po file.
+  -l, --locale <locale>    Target locale for .po headers. Default: zh_Hans.
+  -p, --package <name>     Project/package name for .po metadata.
+      --project-id-version <text>
+                           Override Project-Id-Version header.
+      --po-revision-date <text>
+                           Override PO-Revision-Date header.
+      --last-translator <text>
+                           Override Last-Translator header.
+      --language-team <text>
+                           Override Language-Team header.
+      --language <text>    Override Language header.
+      --mime-version <text>
+                           Override MIME-Version header.
+      --content-type <text>
+                           Override Content-Type header.
+      --content-transfer-encoding <text>
+                           Override Content-Transfer-Encoding header.
+      --plural-forms <text>
+                           Override Plural-Forms header.
+  -m, --merge              Preserve existing msgstr values when --po already exists.
+      --exclude <name>     Directory name to exclude. Repeatable.
+      --json               Force JSON output when only --po is provided.
+      --translate          Translate extracted strings before writing --po. Requires --po.
+      --translator <name>  Translator backend. Currently: openai. Default: openai.
+      --cache <path>       Translation cache JSON. Default: none.
+      --batch-size <n>     Strings per translation request. Default: 25.
+      OPENAI_MODEL         Environment variable for the model. Default: gpt-4o-mini.
+      --api-url <url>      OpenAI-compatible endpoint. Default: OPENAI_API_URL or OpenAI.
+      --prompt <path>      Extra system prompt markdown/text file.
+  -h, --help               Show this help.
 
 Examples:
   luci-i18n-export -i ./htdocs -o ./translations.json
   luci-i18n-export -i ./frontend-src/src --po ./po/zh_Hans/app.po --merge -p luci-app-example
+  luci-i18n-export -i ./htdocs --po ./po/ru/app.po --language-team "Russian <LL@li.org>" --plural-forms "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
   OPENAI_MODEL=gpt-4o-mini luci-i18n-export -i ./htdocs --po ./po/zh_Hans/app.po --translate
 `);
 }
 
-main().catch((error: unknown) => {
-	const message = error instanceof Error ? error.message : String(error);
-	console.error(`luci-i18n-export: ${message}`);
-	process.exitCode = 1;
-});
+const isMainModule = import.meta.url === new URL(process.argv[1], "file:").href;
+
+if (isMainModule) {
+	main().catch((error: unknown) => {
+		const message = error instanceof Error ? error.message : String(error);
+		console.error(`luci-i18n-export: ${message}`);
+		process.exitCode = 1;
+	});
+}
