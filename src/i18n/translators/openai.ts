@@ -317,10 +317,14 @@ function tryParseHashlineList(
 	input: string,
 	expectedLabels: readonly string[],
 ): string[] | undefined {
-	const lines = input
-		.split("\n")
+	const cleaned = input
+		.replace(/^```[a-zA-Z]*\r?\n?/g, "")
+		.replace(/\r?\n?```$/g, "")
+		.trim();
+	const lines = cleaned
+		.split(/\r?\n/)
 		.map((line) => line.trim())
-		.filter((line) => line !== "");
+		.filter((line) => line !== "" && !line.startsWith("```"));
 
 	if (lines.length === 0 || !lines[0]?.startsWith("__")) {
 		return undefined;
