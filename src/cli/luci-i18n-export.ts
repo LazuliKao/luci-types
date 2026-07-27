@@ -18,6 +18,7 @@ export interface CliOptions {
 	poExplicit: boolean;
 	packageName?: string;
 	merge: boolean;
+	mergeExplicit: boolean;
 	json: boolean;
 	exclude: string[];
 	translate?: boolean;
@@ -163,6 +164,10 @@ async function main(): Promise<void> {
 				})
 			: undefined;
 
+		const merge = cliOpts.mergeExplicit
+			? cliOpts.merge
+			: (fileConfig.merge ?? true);
+
 		console.log(`\nProcessing locale [${locale}]...`);
 		const result = await exportTranslations({
 			input,
@@ -170,7 +175,7 @@ async function main(): Promise<void> {
 			po,
 			locale,
 			packageName,
-			merge: cliOpts.merge,
+			merge,
 			json: cliOpts.json,
 			exclude,
 			headers,
@@ -212,6 +217,7 @@ export function parseArgs(args: readonly string[]): CliOptions {
 		localeExplicit: false,
 		poExplicit: false,
 		merge: false,
+		mergeExplicit: false,
 		json: false,
 		exclude: [],
 		translator: "openai",
@@ -275,6 +281,11 @@ export function parseArgs(args: readonly string[]): CliOptions {
 			case "--merge":
 			case "-m":
 				options.merge = true;
+				options.mergeExplicit = true;
+				break;
+			case "--no-merge":
+				options.merge = false;
+				options.mergeExplicit = true;
 				break;
 			case "--json":
 				options.json = true;
