@@ -78,3 +78,30 @@ export interface ExportTranslationsResult {
 	translatedCount?: number;
 	cachePath?: string;
 }
+
+export interface LocaleOptions {
+	locale: string;
+	po?: string;
+	prompt?: string;
+	headers?: PoHeaderOptions;
+}
+
+export interface LuciI18nTranslateConfig {
+	enabled?: boolean;
+	translator?: "openai";
+	apiUrl?: string;
+	prompt?: string;
+	batchSize?: number;
+	cache?: string;
+}
+
+export interface LuciI18nConfig {
+	input?: string[];
+	packageName?: string;
+	output?: string;
+	pot?: string;
+	extractPot?: boolean;
+	exclude?: string[];
+	translate?: LuciI18nTranslateConfig;
+	locales?: (string | LocaleOptions)[];
+}

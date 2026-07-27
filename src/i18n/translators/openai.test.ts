@@ -23,7 +23,9 @@ function getSourceLine(body: unknown): string {
 	assert.ok(Array.isArray(requestBody.messages));
 	const messages = requestBody.messages;
 
-	const prompt = messages.findLast((message) => message.role === "user")?.content;
+	const prompt = messages.findLast(
+		(message) => message.role === "user",
+	)?.content;
 	assert.ok(typeof prompt === "string");
 
 	const sourceLine = prompt.split("\n").find((line) => line.startsWith("__"));
@@ -58,7 +60,10 @@ test("retry keeps prior invalid translation alongside source lines", async () =>
 
 			assert.equal(callCount, 2);
 			assert.equal(body.messages[3]?.role, "assistant");
-			assert.equal(body.messages[3]?.content, `${label}. ${JSON.stringify(invalidTarget)}`);
+			assert.equal(
+				body.messages[3]?.content,
+				`${label}. ${JSON.stringify(invalidTarget)}`,
+			);
 			assert.match(
 				body.messages[4]?.content,
 				/Do not translate, explain, or answer the validator feedback itself\./u,
@@ -112,7 +117,10 @@ test("retry also keeps malformed previous response", async () => {
 				body.messages[4]?.content,
 				/Translator response must be hashline output/u,
 			);
-			assert.match(body.messages[4]?.content, /__01_[0-9a-f]+__\. "Animation"/u);
+			assert.match(
+				body.messages[4]?.content,
+				/__01_[0-9a-f]+__\. "Animation"/u,
+			);
 
 			return createChatResponse(`${label}. ${JSON.stringify(validTarget)}`);
 		},

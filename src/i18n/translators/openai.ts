@@ -63,14 +63,26 @@ export class OpenAICompatibleTranslator implements Translator {
 
 		let retryFeedback: string | undefined;
 		let previousResponse: string | undefined;
-		const errors: Array<{ attempt: number; reason: string; response: string | undefined }> = [];
+		const errors: Array<{
+			attempt: number;
+			reason: string;
+			response: string | undefined;
+		}> = [];
 
 		for (let attempt = 1; attempt <= maxTranslationAttempts; attempt += 1) {
 			try {
-				console.error(`[translate] Attempt ${attempt}/${maxTranslationAttempts}...`);
-				const content = await this.#createCompletion(texts, retryFeedback, previousResponse);
+				console.error(
+					`[translate] Attempt ${attempt}/${maxTranslationAttempts}...`,
+				);
+				const content = await this.#createCompletion(
+					texts,
+					retryFeedback,
+					previousResponse,
+				);
 
-				console.error(`[translate] Raw model response:\n${content === "" ? "(empty)" : content}`);
+				console.error(
+					`[translate] Raw model response:\n${content === "" ? "(empty)" : content}`,
+				);
 
 				try {
 					const translations = parseTranslationArray(content, texts);
@@ -87,7 +99,10 @@ export class OpenAICompatibleTranslator implements Translator {
 				}
 			} catch (error) {
 				const reason = formatRetryFeedback(error);
-				const response = error instanceof TranslationValidationError ? error.response : undefined;
+				const response =
+					error instanceof TranslationValidationError
+						? error.response
+						: undefined;
 				errors.push({ attempt, reason, response });
 
 				if (attempt === maxTranslationAttempts) {
@@ -109,11 +124,16 @@ export class OpenAICompatibleTranslator implements Translator {
 
 				console.error(`[translate] Retrying after attempt ${attempt} failure.`);
 				retryFeedback = reason;
-				previousResponse = error instanceof TranslationValidationError ? error.response : previousResponse;
+				previousResponse =
+					error instanceof TranslationValidationError
+						? error.response
+						: previousResponse;
 			}
 		}
 
-		throw new Error(`Translator exhausted all retry attempts for ${texts.length} string(s).`);
+		throw new Error(
+			`Translator exhausted all retry attempts for ${texts.length} string(s).`,
+		);
 	}
 
 	async #createCompletion(
@@ -121,7 +141,10 @@ export class OpenAICompatibleTranslator implements Translator {
 		retryFeedback?: string,
 		previousResponse?: string,
 	): Promise<string> {
-		const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+		const messages: Array<{
+			role: "system" | "user" | "assistant";
+			content: string;
+		}> = [
 			{
 				role: "system",
 				content: `You translate LuCI/OpenWrt web UI strings into ${this.#locale}. Return only hashline lines in this format: __01_ab12__. "translation". The label separator is an underscore (__NN_xxxx__), never a period. Copy the label exactly, keep the same order. Preserve placeholders, HTML, code, URLs, \\n, whitespace, and newline counts.`,
@@ -155,7 +178,7 @@ export class OpenAICompatibleTranslator implements Translator {
 					"Validator feedback:",
 					retryFeedback,
 					"",
-					`CRITICAL REMINDER: Your core goal is to translate the strings into ${this.#locale}. Do NOT just copy the original source text.`
+					`CRITICAL REMINDER: Your core goal is to translate the strings into ${this.#locale}. Do NOT just copy the original source text.`,
 				].join("\n"),
 			});
 		}
@@ -228,10 +251,16 @@ function formatHashlineInput(texts: readonly string[]): string {
 function getHashlineLabels(texts: readonly string[]): string[] {
 	const ordinalWidth = Math.max(2, String(texts.length).length);
 	const hashes = createBatchHashes(texts);
-	return texts.map((text, index) => createHashlineLabel(index, hashes[index], ordinalWidth));
+	return texts.map((text, index) =>
+		createHashlineLabel(index, hashes[index], ordinalWidth),
+	);
 }
 
-function createHashlineLabel(index: number, hash: string, width: number): string {
+function createHashlineLabel(
+	index: number,
+	hash: string,
+	width: number,
+): string {
 	const ordinal = String(index + 1).padStart(width, "0");
 	return `__${ordinal}_${hash}__`;
 }
@@ -240,7 +269,9 @@ function createBatchHashes(values: readonly string[]): string[] {
 	let length = hashlineHashLength;
 
 	for (;;) {
-		const hashes = values.map((v) => createHash("sha1").update(v).digest("hex").slice(0, length));
+		const hashes = values.map((v) =>
+			createHash("sha1").update(v).digest("hex").slice(0, length),
+		);
 		if (new Set(hashes).size === hashes.length) {
 			return hashes;
 		}
@@ -269,7 +300,7 @@ function parseTranslationArray(
 
 	if (parsed === undefined) {
 		throw new Error(
-			"Translator response must be hashline output (__01_ab12__. \"translation\").",
+			'Translator response must be hashline output (__01_ab12__. "translation").',
 		);
 	}
 
@@ -329,7 +360,9 @@ function tryParseHashlineList(
 		}
 
 		if (typeof value !== "string") {
-			throw new Error(`Translation ${index + 1} after ${label} must be a string.`);
+			throw new Error(
+				`Translation ${index + 1} after ${label} must be a string.`,
+			);
 		}
 
 		return value;
@@ -344,7 +377,6 @@ function stripMarkdownFence(value: string): string {
 	return value.replace(/^```(?:json)?\s*/u, "").replace(/\s*```$/u, "");
 }
 
-
 function countOccurrences(value: string): number {
 	return [...value].filter((char) => char === "\n").length;
 }
@@ -356,7 +388,7 @@ function leadingWhitespace(value: string): string {
 function trailingWhitespace(value: string): string {
 	return value.match(/\s*$/u)?.[0] ?? "";
 }
-	
+
 function validateTranslations(
 	sources: readonly string[],
 	translations: readonly string[],
@@ -365,14 +397,40 @@ function validateTranslations(
 		const target = translations[index];
 
 		if (target === undefined || target.trim() === "") {
-			throw new Error(`Translator returned an empty translation for item ${index + 1}.`);
+			throw new Error(
+				`Translator returned an empty translation for item ${index + 1}.`,
+			);
 		}
 
-		assertPreservedInvariant(source, target, index, "newline count", countOccurrences);
-		assertPreservedInvariant(source, target, index, "leading whitespace", leadingWhitespace);
-		assertPreservedInvariant(source, target, index, "trailing whitespace", trailingWhitespace);
+		assertPreservedInvariant(
+			source,
+			target,
+			index,
+			"newline count",
+			countOccurrences,
+		);
+		assertPreservedInvariant(
+			source,
+			target,
+			index,
+			"leading whitespace",
+			leadingWhitespace,
+		);
+		assertPreservedInvariant(
+			source,
+			target,
+			index,
+			"trailing whitespace",
+			trailingWhitespace,
+		);
 
-		assertSameTokens(source, target, index, "printf-style placeholders", /%(?:\d+\$)?[-+#0 ]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[a-zA-Z%]/gu);
+		assertSameTokens(
+			source,
+			target,
+			index,
+			"printf-style placeholders",
+			/%(?:\d+\$)?[-+#0 ]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[a-zA-Z%]/gu,
+		);
 	}
 }
 
@@ -397,13 +455,20 @@ function assertSameTokens(
 	label: string,
 	pattern: RegExp,
 ): void {
-	const sourceTokens = [...source.matchAll(pattern)].map((match) => match[0]).sort();
+	const sourceTokens = [...source.matchAll(pattern)]
+		.map((match) => match[0])
+		.sort();
 	if (sourceTokens.length === 0) {
 		return;
 	}
 
-	const targetTokens = [...target.matchAll(pattern)].map((match) => match[0]).sort();
-	if (sourceTokens.length !== targetTokens.length || !sourceTokens.every((token, i) => token === targetTokens[i])) {
+	const targetTokens = [...target.matchAll(pattern)]
+		.map((match) => match[0])
+		.sort();
+	if (
+		sourceTokens.length !== targetTokens.length ||
+		!sourceTokens.every((token, i) => token === targetTokens[i])
+	) {
 		throw new Error(
 			`Translation ${index + 1} changed ${label}. Expected tokens ${JSON.stringify(sourceTokens)} but got ${JSON.stringify(targetTokens)}. Source=${JSON.stringify(source)} Target=${JSON.stringify(target)}`,
 		);
