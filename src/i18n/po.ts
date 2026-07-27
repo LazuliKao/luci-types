@@ -5,6 +5,12 @@ import type { GeneratePoOptions, PoHeaderOptions } from "./types.ts";
 interface PoEntry {
 	msgid: string;
 	msgstr: string;
+	comments?: string[];
+}
+
+interface PoDetails {
+	msgstr: string;
+	comments?: string[];
 }
 
 type RenderedPoHeaders = Omit<Required<PoHeaderOptions>, "potCreationDate"> & {
@@ -12,16 +18,20 @@ type RenderedPoHeaders = Omit<Required<PoHeaderOptions>, "potCreationDate"> & {
 };
 
 export async function generatePo(options: GeneratePoOptions): Promise<void> {
-	const existing = options.merge
-		? await readPoTranslations(options.output)
-		: new Map<string, string>();
+	const existingDetails = options.merge
+		? await readPoDetails(options.output)
+		: new Map<string, PoDetails>();
 	const entries = [...new Set(options.translations)]
 		.sort((left, right) => left.localeCompare(right))
-		.map<PoEntry>((msgid) => ({
-			msgid,
-			msgstr:
-				readNonEmpty(options.translated, msgid) ?? existing.get(msgid) ?? "",
-		}));
+		.map<PoEntry>((msgid) => {
+			const existing = existingDetails.get(msgid);
+			return {
+				msgid,
+				msgstr:
+					readNonEmpty(options.translated, msgid) ?? existing?.msgstr ?? "",
+				comments: existing?.comments,
+			};
+		});
 
 	await fs.mkdir(path.dirname(path.resolve(options.output)), {
 		recursive: true,
@@ -46,9 +56,20 @@ export function renderPo(
 export async function readPoTranslations(
 	filePath: string,
 ): Promise<Map<string, string>> {
+	const details = await readPoDetails(filePath);
+	const result = new Map<string, string>();
+	for (const [msgid, detail] of details) {
+		result.set(msgid, detail.msgstr);
+	}
+	return result;
+}
+
+export async function readPoDetails(
+	filePath: string,
+): Promise<Map<string, PoDetails>> {
 	try {
 		const source = await fs.readFile(filePath, "utf8");
-		return parsePo(source);
+		return parsePoDetails(source);
 	} catch (error) {
 		if (isNodeError(error) && error.code === "ENOENT") {
 			return new Map();
@@ -58,25 +79,40 @@ export async function readPoTranslations(
 	}
 }
 
-function parsePo(source: string): Map<string, string> {
-	const entries = new Map<string, string>();
+function parsePoDetails(source: string): Map<string, PoDetails> {
+	const entries = new Map<string, PoDetails>();
 	const lines = source.split(/\r?\n/);
 	let currentKey: "msgid" | "msgstr" | undefined;
 	let msgid: string | undefined;
 	let msgstr = "";
+	let currentComments: string[] = [];
 
 	const flush = (): void => {
 		if (msgid !== undefined && msgid !== "") {
-			entries.set(msgid, msgstr);
+			entries.set(msgid, {
+				msgstr,
+				comments: currentComments.length > 0 ? [...currentComments] : undefined,
+			});
 		}
 		currentKey = undefined;
 		msgid = undefined;
 		msgstr = "";
+		currentComments = [];
 	};
 
 	for (const line of lines) {
+		if (line.startsWith("#")) {
+			if (currentKey === "msgstr") {
+				flush();
+			}
+			currentComments.push(line);
+			continue;
+		}
+
 		if (line.startsWith("msgid ")) {
-			flush();
+			if (currentKey === "msgstr") {
+				flush();
+			}
 			currentKey = "msgid";
 			msgid = unquotePoString(line.slice("msgid ".length));
 			continue;
@@ -138,7 +174,11 @@ function formatHeaders(headers: RenderedPoHeaders): string {
 }
 
 function renderEntry(entry: PoEntry): string {
-	return `${renderPoValue("msgid", entry.msgid)}\n${renderPoValue("msgstr", entry.msgstr)}`;
+	const commentsStr =
+		entry.comments && entry.comments.length > 0
+			? `${entry.comments.join("\n")}\n`
+			: "";
+	return `${commentsStr}${renderPoValue("msgid", entry.msgid)}\n${renderPoValue("msgstr", entry.msgstr)}`;
 }
 
 function readNonEmpty(
@@ -155,12 +195,12 @@ function renderPoValue(key: "msgid" | "msgstr", value: string): string {
 		return `${key} ""`;
 	}
 
-	if (value.length <= 80 && !value.includes("\n")) {
+	if (value.length <= 76 && !value.includes("\n")) {
 		return `${key} ${quotePoString(value)}`;
 	}
 
 	const chunks = splitPoMultilineValue(value).flatMap((part) =>
-		splitLongLine(part, 80),
+		splitLongLine(part, 76),
 	);
 	return [`${key} ""`, ...chunks.map((chunk) => quotePoString(chunk))].join(
 		"\n",
@@ -177,9 +217,25 @@ function splitLongLine(value: string, maxLength: number): string[] {
 	}
 
 	const chunks: string[] = [];
-	for (let index = 0; index < value.length; index += maxLength) {
-		chunks.push(value.slice(index, index + maxLength));
+	let current = value;
+
+	while (current.length > maxLength) {
+		let breakIndex = current.lastIndexOf(" ", maxLength);
+
+		if (breakIndex > 0) {
+			breakIndex += 1;
+			chunks.push(current.slice(0, breakIndex));
+			current = current.slice(breakIndex);
+		} else {
+			chunks.push(current.slice(0, maxLength));
+			current = current.slice(maxLength);
+		}
 	}
+
+	if (current.length > 0) {
+		chunks.push(current);
+	}
+
 	return chunks;
 }
 
