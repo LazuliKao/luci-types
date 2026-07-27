@@ -146,7 +146,7 @@ async function main(): Promise<void> {
 			output = "translations.json";
 		}
 
-		const headers = buildHeaders(cliOpts, target.headers);
+		const headers = buildHeaders(cliOpts, target.headers, fileConfig.headers);
 
 		const batchSize = cliOpts.batchSize ?? fileConfig.translate?.batchSize;
 		const apiUrl = cliOpts.apiUrl ?? fileConfig.translate?.apiUrl;
@@ -387,19 +387,43 @@ function resolvePromptPath(
 function buildHeaders(
 	cliOpts: CliOptions,
 	targetHeaders?: PoHeaderOptions,
+	fileHeaders?: PoHeaderOptions,
 ): PoHeaderOptions | undefined {
 	const h = {
 		projectIdVersion:
-			cliOpts.projectIdVersion ?? targetHeaders?.projectIdVersion,
-		poRevisionDate: cliOpts.poRevisionDate ?? targetHeaders?.poRevisionDate,
-		lastTranslator: cliOpts.lastTranslator ?? targetHeaders?.lastTranslator,
-		languageTeam: cliOpts.languageTeam ?? targetHeaders?.languageTeam,
-		language: cliOpts.language ?? targetHeaders?.language,
-		mimeVersion: cliOpts.mimeVersion ?? targetHeaders?.mimeVersion,
-		contentType: cliOpts.contentType ?? targetHeaders?.contentType,
+			cliOpts.projectIdVersion ??
+			targetHeaders?.projectIdVersion ??
+			fileHeaders?.projectIdVersion,
+		poRevisionDate:
+			cliOpts.poRevisionDate ??
+			targetHeaders?.poRevisionDate ??
+			fileHeaders?.poRevisionDate,
+		lastTranslator:
+			cliOpts.lastTranslator ??
+			targetHeaders?.lastTranslator ??
+			fileHeaders?.lastTranslator,
+		languageTeam:
+			cliOpts.languageTeam ??
+			targetHeaders?.languageTeam ??
+			fileHeaders?.languageTeam,
+		language:
+			cliOpts.language ?? targetHeaders?.language ?? fileHeaders?.language,
+		mimeVersion:
+			cliOpts.mimeVersion ??
+			targetHeaders?.mimeVersion ??
+			fileHeaders?.mimeVersion,
+		contentType:
+			cliOpts.contentType ??
+			targetHeaders?.contentType ??
+			fileHeaders?.contentType,
 		contentTransferEncoding:
-			cliOpts.contentTransferEncoding ?? targetHeaders?.contentTransferEncoding,
-		pluralForms: cliOpts.pluralForms ?? targetHeaders?.pluralForms,
+			cliOpts.contentTransferEncoding ??
+			targetHeaders?.contentTransferEncoding ??
+			fileHeaders?.contentTransferEncoding,
+		pluralForms:
+			cliOpts.pluralForms ??
+			targetHeaders?.pluralForms ??
+			fileHeaders?.pluralForms,
 	};
 
 	return Object.values(h).some((v) => v !== undefined) ? h : undefined;

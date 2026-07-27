@@ -111,10 +111,9 @@ function createHeaders(
 	return {
 		projectIdVersion: options.headers?.projectIdVersion ?? packageName,
 		potCreationDate: formatPoDate(date),
-		poRevisionDate: options.headers?.poRevisionDate ?? "YEAR-MO-DA HO:MI+ZONE",
-		lastTranslator:
-			options.headers?.lastTranslator ?? "FULL NAME <EMAIL@ADDRESS>",
-		languageTeam: options.headers?.languageTeam ?? "LANGUAGE <LL@li.org>",
+		poRevisionDate: options.headers?.poRevisionDate ?? "",
+		lastTranslator: options.headers?.lastTranslator ?? "",
+		languageTeam: options.headers?.languageTeam ?? "",
 		language: options.headers?.language ?? normalizePoLanguage(locale),
 		mimeVersion: options.headers?.mimeVersion ?? "1.0",
 		contentType: options.headers?.contentType ?? "text/plain; charset=UTF-8",

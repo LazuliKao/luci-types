@@ -103,6 +103,7 @@ export interface LuciI18nConfig {
 	extractPot?: boolean;
 	merge?: boolean;
 	exclude?: string[];
+	headers?: PoHeaderOptions;
 	translate?: LuciI18nTranslateConfig;
 	locales?: (string | LocaleOptions)[];
 }
