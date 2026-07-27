@@ -22,6 +22,7 @@ export interface CliOptions {
 	json: boolean;
 	exclude: string[];
 	translate?: boolean;
+	translateExplicit: boolean;
 	translator: "openai";
 	translatorExplicit: boolean;
 	cache?: string;
@@ -119,8 +120,9 @@ async function main(): Promise<void> {
 		});
 	}
 
-	const globalTranslateEnabled =
-		cliOpts.translate ?? fileConfig.translate?.enabled ?? false;
+	const globalTranslateEnabled = cliOpts.translateExplicit
+		? (cliOpts.translate ?? false)
+		: (fileConfig.translate?.enabled ?? false);
 
 	for (const target of targets) {
 		const locale = target.locale;
@@ -222,6 +224,7 @@ export function parseArgs(args: readonly string[]): CliOptions {
 		exclude: [],
 		translator: "openai",
 		translatorExplicit: false,
+		translateExplicit: false,
 		help: false,
 	};
 
@@ -292,6 +295,11 @@ export function parseArgs(args: readonly string[]): CliOptions {
 				break;
 			case "--translate":
 				options.translate = true;
+				options.translateExplicit = true;
+				break;
+			case "--no-translate":
+				options.translate = false;
+				options.translateExplicit = true;
 				break;
 			case "--translator":
 				index += 1;
