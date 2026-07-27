@@ -469,12 +469,8 @@ Options:
 `);
 }
 
-const isMainModule = import.meta.url === new URL(process.argv[1], "file:").href;
-
-if (isMainModule) {
-	main().catch((error: unknown) => {
-		const message = error instanceof Error ? error.message : String(error);
-		console.error(`luci-i18n-export: ${message}`);
-		process.exitCode = 1;
-	});
-}
+main().catch((error: unknown) => {
+	const message = error instanceof Error ? error.message : String(error);
+	console.error(`luci-i18n-export: ${message}`);
+	process.exitCode = 1;
+});
