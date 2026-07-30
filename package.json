@@ -58,7 +58,8 @@
 		"luci.d.ts",
 		"luci/",
 		"jsx.d.ts",
-		"src/"
+		"src/",
+		"skills/"
 	],
 	"scripts": {
 		"check": "tsc --noEmit",
