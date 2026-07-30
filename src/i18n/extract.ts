@@ -1,5 +1,5 @@
 import { promises as fs } from "node:fs";
-import * as ast from "typescript/unstable/ast";
+import ts from "typescript";
 import { collectSourceFiles, DEFAULT_EXTENSIONS } from "./files.ts";
 import type {
 	ExtractTranslationsOptions,
@@ -34,37 +34,37 @@ export async function extractTranslations(
 
 export function extractFromSource(
 	source: string,
-	_fileName = "source.ts",
+	fileName = "source.ts",
 	translations = new Set<string>(),
 ): Set<string> {
-	const scanner = ast.createScanner(
+	const sourceFile = ts.createSourceFile(
+		fileName,
+		source,
+		ts.ScriptTarget.Latest,
 		true,
-		ast.LanguageVariant.Standard,
+		scriptKindForFile(fileName),
 	);
-	scanner.setText(source);
 
-	let token = scanner.scan();
-	let expectOpenParen = false;
+	const visit = (node: ts.Node): void => {
+		if (
+			ts.isCallExpression(node) &&
+			ts.isIdentifier(node.expression) &&
+			node.expression.text === "_"
+		) {
+			const firstArgument = node.arguments[0];
 
-	while (token !== ast.SyntaxKind.EndOfFile) {
-		if (token === ast.SyntaxKind.Identifier && scanner.getTokenText() === "_") {
-			expectOpenParen = true;
-		} else if (expectOpenParen && token === ast.SyntaxKind.OpenParenToken) {
-			expectOpenParen = false;
-			token = scanner.scan();
 			if (
-				token === ast.SyntaxKind.StringLiteral ||
-				token === ast.SyntaxKind.NoSubstitutionTemplateLiteral
+				firstArgument !== undefined &&
+				ts.isStringLiteralLike(firstArgument)
 			) {
-				translations.add(scanner.getTokenValue());
+				translations.add(firstArgument.text);
 			}
-			continue;
-		} else {
-			expectOpenParen = false;
 		}
-		token = scanner.scan();
-	}
 
+		ts.forEachChild(node, visit);
+	};
+
+	visit(sourceFile);
 	return translations;
 }
 
@@ -79,6 +79,22 @@ export async function writeTranslationsJson(
 		"utf8",
 	);
 	return translations;
+}
+
+function scriptKindForFile(fileName: string): ts.ScriptKind {
+	if (fileName.endsWith(".tsx")) {
+		return ts.ScriptKind.TSX;
+	}
+
+	if (fileName.endsWith(".jsx")) {
+		return ts.ScriptKind.JSX;
+	}
+
+	if (fileName.endsWith(".js")) {
+		return ts.ScriptKind.JS;
+	}
+
+	return ts.ScriptKind.TS;
 }
 
 function dirname(filePath: string): string {
