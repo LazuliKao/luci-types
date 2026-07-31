@@ -249,7 +249,7 @@ function unquotePoString(value: string): string {
 }
 
 function normalizePoLanguage(locale: string): string {
-	return locale === "zh_Hans" ? "zh_CN" : locale.replace("-", "_");
+	return locale.replace("-", "_");
 }
 
 function formatPoDate(date: Date): string {
