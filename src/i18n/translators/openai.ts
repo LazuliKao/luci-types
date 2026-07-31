@@ -147,7 +147,7 @@ export class OpenAICompatibleTranslator implements Translator {
 		}> = [
 			{
 				role: "system",
-				content: `You translate LuCI/OpenWrt web UI strings into ${this.#locale}. Return only hashline lines in this format: __01_ab12__. "translation". The label separator is an underscore (__NN_xxxx__), never a period. Copy the label exactly, keep the same order. Preserve placeholders, HTML, code, URLs, \\n, whitespace, and newline counts.`,
+				content: `You translate LuCI/OpenWrt web UI strings into ${this.#locale}. Return only hashline lines in this format: __01_ab12__. "translation". Do not use markdown code blocks or code fences. The label separator is an underscore (__NN_xxxx__), never a period. Copy the label exactly, keep the same order. Preserve placeholders, HTML, code, URLs, \\n, whitespace, and newline counts.`,
 			},
 			{
 				role: "system",
@@ -318,7 +318,7 @@ function tryParseHashlineList(
 	expectedLabels: readonly string[],
 ): string[] | undefined {
 	const cleaned = input
-		.replace(/^```[a-zA-Z]*\r?\n?/g, "")
+		.replace(/^```[^\n]*\r?\n?/g, "")
 		.replace(/\r?\n?```$/g, "")
 		.trim();
 	const lines = cleaned
@@ -326,21 +326,23 @@ function tryParseHashlineList(
 		.map((line) => line.trim())
 		.filter((line) => line !== "" && !line.startsWith("```"));
 
-	if (lines.length === 0 || !lines[0]?.startsWith("__")) {
+	const hashlineLines = lines.filter((line) => line.startsWith("__"));
+
+	if (hashlineLines.length === 0) {
 		return undefined;
 	}
 
-	if (lines.length !== expectedLabels.length) {
+	if (hashlineLines.length !== expectedLabels.length) {
 		throw new Error(
-			`Translator returned ${lines.length} hashline item(s), expected ${expectedLabels.length}.`,
+			`Translator returned ${hashlineLines.length} hashline item(s), expected ${expectedLabels.length}.`,
 		);
 	}
 
-	return lines.map((line, index) => {
+	return hashlineLines.map((line, index) => {
 		const match = /^(__\d+[_.][0-9a-f]+__)\.\s*/u.exec(line);
 		if (match === null) {
 			throw new Error(
-				`Translation ${index + 1} is not in hashline format (__01_ab12__. \"translation\").`,
+				`Translation ${index + 1} is not in hashline format (__01_ab12__. "translation").`,
 			);
 		}
 
@@ -378,7 +380,7 @@ function stripMarkdownFence(value: string): string {
 		return value;
 	}
 
-	return value.replace(/^```(?:json)?\s*/u, "").replace(/\s*```$/u, "");
+	return value.replace(/^```[^\n]*\r?\n?/u, "").replace(/\r?\n?```$/u, "");
 }
 
 function countOccurrences(value: string): number {

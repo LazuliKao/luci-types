@@ -66,7 +66,7 @@ test("retry keeps prior invalid translation alongside source lines", async () =>
 			);
 			assert.match(
 				body.messages[4]?.content,
-				/Do not translate, explain, or answer the validator feedback itself\./u,
+				/Do not explain, just return the corrected hashline lines\./u,
 			);
 			assert.match(body.messages[4]?.content, /Expected tokens \["%s"\]/u);
 			assert.match(body.messages[4]?.content, /Reboot %s to apply changes\./u);
@@ -132,6 +132,40 @@ test("retry also keeps malformed previous response", async () => {
 		const translated = await translator.translate([source]);
 		assert.equal(translated.get(source), validTarget);
 		assert.equal(callCount, 2);
+	} finally {
+		Object.defineProperty(globalThis, "fetch", {
+			configurable: true,
+			value: originalFetch,
+			writable: true,
+		});
+	}
+});
+
+test("parses response wrapped in markdown code fence like ```text", async () => {
+	const source = "Auto-scroll";
+	const target = "اسکرول خودکار";
+	let callCount = 0;
+
+	const originalFetch = globalThis.fetch;
+	Object.defineProperty(globalThis, "fetch", {
+		configurable: true,
+		value: async (_input: RequestInfo | URL, init?: RequestInit) => {
+			callCount += 1;
+			const body = JSON.parse(String(init?.body));
+			const sourceLine = getSourceLine(body);
+			const label = getLabel(sourceLine);
+
+			const textFenceResponse = `\`\`\`text\n${label}. ${JSON.stringify(target)}\n\`\`\``;
+			return createChatResponse(textFenceResponse);
+		},
+		writable: true,
+	});
+
+	try {
+		const translator = new OpenAICompatibleTranslator({ apiKey: "test-key" });
+		const translated = await translator.translate([source]);
+		assert.equal(translated.get(source), target);
+		assert.equal(callCount, 1);
 	} finally {
 		Object.defineProperty(globalThis, "fetch", {
 			configurable: true,
