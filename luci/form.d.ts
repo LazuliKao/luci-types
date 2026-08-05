@@ -127,7 +127,7 @@ declare namespace LuCI.form {
 		/**
 		 * Reference to the parent Map instance containing this section.
 		 */
-		map: MapElement;
+		map: Map;
 
 		/**
 		 * The UCI configuration name this section belongs to.
@@ -1541,7 +1541,9 @@ declare namespace LuCI.form {
 	 *
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Map.html
 	 */
-	class MapElement extends AbstractElement {
+
+	// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
+	class Map extends AbstractElement {
 		/**
 		 * Toggle readonly state of the form.
 		 *
@@ -1787,7 +1789,7 @@ declare namespace LuCI.form {
 	 *
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.JSONMap.html
 	 */
-	class JSONMap extends MapElement {
+	class JSONMap extends Map {
 		/**
 		 * Create a new JSONMap instance.
 		 *
