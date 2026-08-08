@@ -1687,9 +1687,9 @@ declare namespace LuCI.form {
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Map.html#render
 		 */
 		render(
-			sectionId: string,
-			optionIndex: number,
-			cfgvalue: unknown,
+			sectionId?: string,
+			optionIndex?: number,
+			cfgvalue?: unknown,
 		): Promise<Node>;
 
 		/**
