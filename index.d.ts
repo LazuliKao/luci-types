@@ -17,7 +17,6 @@
 /// <reference path="./luci/firewall.d.ts" />
 /// <reference path="./luci.d.ts" />
 /// <reference path="./luci/form.d.ts" />
-/// <reference path="./luci/form-classes.d.ts" />
 /// <reference path="./luci/dom.d.ts" />
 /// <reference path="./luci/ui.d.ts" />
 /// <reference path="./luci/rpc.d.ts" />

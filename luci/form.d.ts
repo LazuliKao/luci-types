@@ -15,6 +15,24 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractElement.html
 	 */
 	abstract class AbstractElement {
+		/** Create a LuCI subclass while preserving the concrete instance type. */
+		static extend<TBase, TMembers extends object>(
+			this: LuCI.baseclass.Class<TBase>,
+			properties: TMembers &
+				ThisType<LuCI.baseclass.ExtendedInstance<TBase, TMembers>>,
+		): LuCI.baseclass.ExtendableConstructor<
+			LuCI.baseclass.ExtendedInstance<TBase, TMembers>
+		>;
+
+		/** Instantiate this LuCI class with a runtime argument list. */
+		static instantiate<TBase>(
+			this: LuCI.baseclass.Class<TBase>,
+			args: unknown[],
+		): TBase;
+
+		/** Check whether another runtime class inherits from this LuCI class. */
+		static isSubclass(classValue: unknown): boolean;
+
 		/**
 		 * Add another form element as children to this element.
 		 *
@@ -36,7 +54,7 @@ declare namespace LuCI.form {
 		 * their respective elements.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractElement.html#parse
 		 */
-		parse(): Promise<void>;
+		parse(...args: never[]): void | Promise<void>;
 
 		/**
 		 * Render the form element.
@@ -49,11 +67,7 @@ declare namespace LuCI.form {
 		 * elements.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractElement.html#render
 		 */
-		render(
-			sectionId: string,
-			optionIndex: number,
-			cfgvalue: unknown,
-		): Node | Promise<Node>;
+		render(...args: never[]): Node | Promise<Node>;
 
 		/**
 		 * Strip any HTML tags from the given input string, and decode HTML entities.
@@ -94,7 +108,7 @@ declare namespace LuCI.form {
 	 * Type alias for a class constructor that creates instances of type T.
 	 * Used for passing class references (not instances) to methods like `option()`.
 	 */
-	type ClassConstructor<T> = new (...args: any[]) => T;
+	type ClassConstructor<T> = LuCI.baseclass.Class<T>;
 
 	/**
 	 * Configuration value type - can be null, a string, an array of strings,
@@ -286,7 +300,7 @@ declare namespace LuCI.form {
 		 */
 		option<T extends AbstractValue>(
 			optionclass: ClassConstructor<T>,
-			...args: any[]
+			...args: unknown[]
 		): T;
 
 		/**
@@ -311,7 +325,7 @@ declare namespace LuCI.form {
 		taboption<T extends AbstractValue>(
 			tabName: string,
 			optionclass: ClassConstructor<T>,
-			...args: any[]
+			...args: unknown[]
 		): T;
 
 		/**
@@ -862,21 +876,20 @@ declare namespace LuCI.form {
 		value(key: string, val?: Node | string): void;
 
 		/**
-		 * Render the form element.
+		 * Resolve the current configuration value, render its widget, then wrap it
+		 * in the option frame.
 		 *
-		 * The `render()` function recursively walks the form element tree and
-		 * renders the markup for each element, returning the assembled DOM tree.
-		 *
-		 * @returns May return a DOM Node or a promise resolving to a DOM node
-		 * containing the form element's markup, including the markup of any child
-		 * elements.
+		 * @param optionIndex - Position of the option among its rendered siblings.
+		 * @param sectionId - Configuration section identifier.
+		 * @param inTable - Whether the option is being rendered in a table row.
+		 * @returns A promise resolving to the rendered option frame.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Value.html#render
 		 */
 		render(
-			sectionId: string,
 			optionIndex: number,
-			cfgvalue: unknown,
-		): Node | Promise<Node>;
+			sectionId: string,
+			inTable: boolean,
+		): Promise<Node>;
 	}
 
 	/**
@@ -1542,7 +1555,7 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Map.html
 	 */
 
-	// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
+	// biome-ignore lint/suspicious/noShadowRestrictedNames: LuCI's public API exports a form.Map class
 	class Map extends AbstractElement {
 		/**
 		 * Toggle readonly state of the form.

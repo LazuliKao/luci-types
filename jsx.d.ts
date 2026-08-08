@@ -1,6 +1,6 @@
 declare global {
 	type BaseProps = {
-		children?: any;
+		children?: unknown;
 		class?: string;
 		id?: string;
 		name?: string;
@@ -50,6 +50,7 @@ declare global {
 			li: JSXElement<HTMLLIElement>;
 			img: JSXElement<HTMLImageElement>;
 			hr: JSXElement<HTMLHRElement>;
+			video: JSXElement<HTMLVideoElement>;
 		}
 	}
 }

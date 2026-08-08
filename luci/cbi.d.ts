@@ -44,7 +44,7 @@ declare namespace LuCI.cbi {
 	 * @returns Trimmed and normalised string.
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.module_cbi.html
 	 */
-	function trimws(s: any): string;
+	function trimws(s: unknown): string;
 
 	/**
 	 * Read signed 8-bit integer from a byte array at the given offset.

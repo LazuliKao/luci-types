@@ -2,7 +2,7 @@
  * Documentation page fetching and parsing for LuCI JS API validation.
  */
 
-import type { DocItem, DocSection, DocPage } from "./types.js";
+import type { DocItem, DocPage, DocSection } from "./types.js";
 
 const DOCS_URL = "https://openwrt.github.io/luci/jsapi/LuCI.html";
 
@@ -80,8 +80,7 @@ function parseDocHtml(html: string, subpage = false): DocItem[] {
 				if (!subpage) {
 					// Classes and Namespaces use <a href="LuCI.xxx.html">xxx</a> links
 					const linkRegex = /<a href="LuCI\.([^"]+)\.html"[^>]*>([^<]+)<\/a>/g;
-					let linkMatch: RegExpExecArray | null;
-					while ((linkMatch = linkRegex.exec(sectionHtml)) !== null) {
+					for (const linkMatch of sectionHtml.matchAll(linkRegex)) {
 						const rawName = linkMatch[1];
 						const name = linkMatch[2];
 						if (rawName === undefined || name === undefined) continue;
@@ -91,8 +90,7 @@ function parseDocHtml(html: string, subpage = false): DocItem[] {
 			} else {
 				// Members, Methods, Type Definitions use <h3 id="xxx"> elements
 				const h3Regex = /<h3[^>]*id="([^"]+)"[^>]*>/g;
-				let h3Match: RegExpExecArray | null;
-				while ((h3Match = h3Regex.exec(sectionHtml)) !== null) {
+				for (const h3Match of sectionHtml.matchAll(h3Regex)) {
 					const rawName = h3Match[1];
 					if (rawName === undefined || rawName === h2Id) continue;
 

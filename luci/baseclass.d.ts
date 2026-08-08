@@ -1,4 +1,29 @@
 declare namespace LuCI.baseclass {
+	/** Static identity of a LuCI class producing instances of `T`. */
+	interface Class<T> {
+		readonly prototype: T;
+	}
+
+	/** Instance shape produced when subclass members override inherited members. */
+	type ExtendedInstance<TBase, TMembers extends object> = Omit<
+		TBase,
+		keyof TMembers
+	> &
+		TMembers;
+
+	/**
+	 * Static contract shared by classes created through `LuCI.baseclass.extend()`.
+	 * Further extensions preserve both inherited and newly declared members.
+	 */
+	interface ExtendableConstructor<T> extends Class<T> {
+		new (...args: unknown[]): T;
+		extend<TMembers extends object>(
+			properties: TMembers & ThisType<ExtendedInstance<T, TMembers>>,
+		): ExtendableConstructor<ExtendedInstance<T, TMembers>>;
+		instantiate(args: unknown[]): T;
+		isSubclass(classValue: unknown): boolean;
+	}
+
 	/**
 	 * Extends this base class with the properties described in properties and returns a new subclassed Class instance.
 	 * This function serves as the primary means to create subclasses of given classes and implements prototypal inheritance.
@@ -7,7 +32,9 @@ declare namespace LuCI.baseclass {
 	 * @returns A new LuCI.baseclass subclassed from this class, extended by the given properties and with its prototype set to this base class to enable inheritance. The resulting value represents a class constructor and can be instantiated with new.
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.baseclass.html#extend
 	 */
-	function extend(properties: Record<string, any>): typeof LuCI.baseclass;
+	function extend<TMembers extends object>(
+		properties: TMembers & ThisType<ExtendedInstance<IBaseclass, TMembers>>,
+	): ExtendableConstructor<ExtendedInstance<IBaseclass, TMembers>>;
 
 	/**
 	 * Calls the class constructor using new with the given argument array being passed as variadic parameters to the constructor.
@@ -16,7 +43,7 @@ declare namespace LuCI.baseclass {
 	 * @returns A new LuCI.baseclass instance extended by the given properties with its prototype set to this base class to enable inheritance.
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.baseclass.html#instantiate
 	 */
-	function instantiate(args: any[]): LuCI.baseclass;
+	function instantiate(args: unknown[]): IBaseclass;
 
 	/**
 	 * Checks whether the given class value is a subclass of this class.
@@ -25,7 +52,7 @@ declare namespace LuCI.baseclass {
 	 * @returns true when the given classValue is a subclass of this class or false if the given value is not a valid class or not a subclass of this class.
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.baseclass.html#isSubclass
 	 */
-	function isSubclass(classValue: any): boolean;
+	function isSubclass(classValue: unknown): boolean;
 
 	/**
 	 * Extends this base class with the properties described in properties, instantiates the resulting subclass using the given arguments passed to this function and returns the resulting subclassed Class instance.
@@ -36,10 +63,10 @@ declare namespace LuCI.baseclass {
 	 * @returns A new LuCI.baseclass instance extended by the given properties with its prototype set to this base class to enable inheritance.
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.baseclass.html#singleton
 	 */
-	function singleton(
-		properties: Record<string, any>,
-		...new_args: any[]
-	): LuCI.baseclass;
+	function singleton<TMembers extends object>(
+		properties: TMembers & ThisType<ExtendedInstance<IBaseclass, TMembers>>,
+		...new_args: unknown[]
+	): ExtendedInstance<IBaseclass, TMembers>;
 
 	interface IBaseclass {
 		/**
@@ -56,7 +83,7 @@ declare namespace LuCI.baseclass {
 		 * @throws ReferenceError when callArgs are specified and the found member named by key is not a function value.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.baseclass.html#super
 		 */
-		super(key: string, callArgs?: any[] | any): any | null;
+		super<T = unknown>(key: string, callArgs?: unknown[]): T | null;
 
 		/**
 		 * Returns a string representation of this class.
@@ -75,6 +102,10 @@ declare namespace LuCI.baseclass {
 		 * @returns A new array consisting of the optional extra arguments and the values extracted from the args array beginning with offset.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.baseclass.html#varargs
 		 */
-		varargs(args: any[], offset: number, ...extra_args: any[]): any[];
+		varargs(
+			args: unknown[],
+			offset: number,
+			...extra_args: unknown[]
+		): unknown[];
 	}
 }

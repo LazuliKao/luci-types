@@ -3,21 +3,34 @@
  */
 export const Fragment = Symbol.for("jsx.fragment");
 
-function normalizeChildren(input: any[], out: any[] = []): any[] {
+type NormalizedChild = Node | string;
+
+function normalizeChildren(
+	input: unknown[],
+	out: NormalizedChild[] = [],
+): NormalizedChild[] {
 	for (const child of input) {
 		if (child == null || typeof child === "boolean") continue;
 
 		if (Array.isArray(child)) {
 			normalizeChildren(child, out);
 		} else {
-			out.push(child);
+			out.push(child instanceof Node ? child : String(child));
 		}
 	}
 	return out;
 }
 
-function createJsxNode(type: any, config: any): Node {
-	const { children, ...props } = config || {};
+function isPropertyBag(value: unknown): value is Record<string, unknown> {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isEventListener(value: unknown): value is EventListener {
+	return typeof value === "function";
+}
+
+function createJsxNode(type: unknown, config: unknown): Node {
+	const { children, ...props } = isPropertyBag(config) ? config : {};
 
 	const childArray =
 		children == null ? [] : Array.isArray(children) ? children : [children];
@@ -30,14 +43,26 @@ function createJsxNode(type: any, config: any): Node {
 	}
 
 	if (typeof type === "function") {
-		return type({ ...props, children: filteredChildren });
+		const result: unknown = Reflect.apply(type, undefined, [
+			{ ...props, children: filteredChildren },
+		]);
+		if (!(result instanceof Node)) {
+			throw new TypeError("JSX components must return a DOM Node");
+		}
+		return result;
 	}
 
-	const eventHandlers: Record<string, any> = {};
+	if (typeof type !== "string") {
+		throw new TypeError(
+			"JSX element types must be tag names or component functions",
+		);
+	}
+
+	const eventHandlers: Record<string, EventListener> = {};
 	const finalProps = { ...props };
 
 	for (const [key, value] of Object.entries(finalProps)) {
-		if (key.startsWith("on") && typeof value === "function") {
+		if (key.startsWith("on") && isEventListener(value)) {
 			eventHandlers[key] = value;
 			delete finalProps[key];
 		} else if (typeof value === "boolean") {
@@ -69,20 +94,20 @@ function createJsxNode(type: any, config: any): Node {
 /**
  * JSX automatic runtime - production (single/no children)
  */
-export function jsx(type: any, config: any): Node {
+export function jsx(type: unknown, config: unknown): Node {
 	return createJsxNode(type, config);
 }
 
 /**
  * JSX automatic runtime - production (multiple static children)
  */
-export function jsxs(type: any, config: any): Node {
+export function jsxs(type: unknown, config: unknown): Node {
 	return createJsxNode(type, config);
 }
 
 /**
  * JSX automatic runtime - development mode
  */
-export function jsxDEV(type: any, config: any): Node {
+export function jsxDEV(type: unknown, config: unknown): Node {
 	return createJsxNode(type, config);
 }
