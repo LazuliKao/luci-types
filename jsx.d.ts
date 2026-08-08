@@ -48,6 +48,8 @@ declare global {
 			pre: JSXElement<HTMLPreElement>;
 			ul: JSXElement<HTMLUListElement>;
 			li: JSXElement<HTMLLIElement>;
+			img: JSXElement<HTMLImageElement>;
+			hr: JSXElement<HTMLHRElement>;
 		}
 	}
 }
