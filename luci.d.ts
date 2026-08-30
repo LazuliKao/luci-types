@@ -103,7 +103,13 @@ declare const L: {
 	Request: new (
 		...args: unknown[]
 	) => unknown;
-	/** Legacy L.dom class alias (deprecated) */
+	/**
+	 * Legacy `L.dom` class alias.
+	 *
+	 * @deprecated Use `await L.require("dom")` instead. In LuCI modules, you may
+	 * alternatively add `'require dom';` to the module header and declare the
+	 * injected binding with `declare const dom: typeof LuCI.dom;`.
+	 */
 	dom: new (
 		...args: unknown[]
 	) => unknown;

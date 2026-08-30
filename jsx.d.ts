@@ -51,8 +51,10 @@ declare global {
 			img: JSXElement<HTMLImageElement>;
 			hr: JSXElement<HTMLHRElement>;
 			video: JSXElement<HTMLVideoElement>;
+			time: JSXElement<HTMLTimeElement>;
+			link: JSXElement<HTMLLinkElement>;
 		}
 	}
 }
 
-export {};
+export { };
