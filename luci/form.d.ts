@@ -15,6 +15,8 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractElement.html
 	 */
 	abstract class AbstractElement {
+		title: string;
+		description: string;
 		/** Child form elements, populated by append(). */
 		children: AbstractElement[];
 		/** Create a LuCI subclass while preserving the concrete instance type. */
@@ -301,6 +303,12 @@ declare namespace LuCI.form {
 		 * class value is not a descendant of `AbstractValue`.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractSection.html#option
 		 */
+		option<S extends AbstractSection>(
+			optionclass: typeof SectionValue,
+			name: string,
+			sectionclass: ClassConstructor<S>,
+			...args: unknown[]
+		): SectionValue<S>;
 		option<T extends AbstractValue>(
 			optionclass: ClassConstructor<T>,
 			...args: unknown[]
@@ -325,6 +333,13 @@ declare namespace LuCI.form {
 		 * class value is not a descendant of `AbstractValue`.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractSection.html#taboption
 		 */
+		taboption<S extends AbstractSection>(
+			tabName: string,
+			optionclass: typeof SectionValue,
+			name: string,
+			sectionclass: ClassConstructor<S>,
+			...args: unknown[]
+		): SectionValue<S>;
 		taboption<T extends AbstractValue>(
 			tabName: string,
 			optionclass: ClassConstructor<T>,
@@ -605,7 +620,7 @@ declare namespace LuCI.form {
 		 * @default null
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractValue.html#onchange
 		 */
-		onchange: (ev: Element, section_id: string, value: unknown) => void;
+		onchange: (ev: Event, section_id: string, value: unknown) => void;
 
 		/**
 		 * Obtain the internal ID ("cbid") of the element instance.
@@ -811,7 +826,10 @@ declare namespace LuCI.form {
 		 * @param formvalue - The input value to write.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractValue.html#write
 		 */
-		write(section_id: string, formvalue: string | string[]): void | Promise<void>;
+		write(
+			section_id: string,
+			formvalue: string | string[],
+		): void | Promise<void>;
 
 		/**
 		 * Remove the corresponding value from the configuration.
@@ -853,7 +871,11 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Value.html
 	 */
 	class Value extends AbstractValue {
-		renderWidget(section_id: string, option_index: number, cfgvalue: unknown): Node | Promise<Node>;
+		renderWidget(
+			section_id: string,
+			option_index: number,
+			cfgvalue: unknown,
+		): Node | Promise<Node>;
 		/**
 		 * If set to `true`, the field is rendered as a password input, otherwise
 		 * as a plain text input.
@@ -1575,6 +1597,8 @@ declare namespace LuCI.form {
 
 	// biome-ignore lint/suspicious/noShadowRestrictedNames: LuCI's public API exports a form.Map class
 	class Map extends AbstractElement {
+		/** UCI data source, or the UCI-compatible data source of a JSONMap. */
+		data: { get(config: string, section: string, option?: string): unknown };
 		/**
 		 * Toggle readonly state of the form.
 		 *
@@ -2295,7 +2319,9 @@ declare namespace LuCI.form {
 	 *
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.SectionValue.html
 	 */
-	class SectionValue extends Value {
+	class SectionValue<
+		S extends AbstractSection = AbstractSection,
+	> extends Value {
 		/**
 		 * Access the embedded section instance. This property holds a reference
 		 * to the instantiated nested section.
@@ -2303,7 +2329,7 @@ declare namespace LuCI.form {
 		 * @readonly
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.SectionValue.html#subsection
 		 */
-		readonly subsection: AbstractSection;
+		readonly subsection: S;
 
 		/**
 		 * Load the underlying configuration value.

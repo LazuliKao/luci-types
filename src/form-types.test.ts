@@ -4,6 +4,16 @@ declare const modal: LuCI.form.NamedSection;
 declare const grid: LuCI.form.GridSection;
 
 const multi = section.option(LuCI.form.MultiValue, "services");
+const nested = section.taboption(
+	"tab",
+	LuCI.form.SectionValue,
+	"nested",
+	LuCI.form.GridSection,
+	"device",
+);
+nested.subsection.handleRemove("section");
+section.description = "Section description";
+section.map.data.get("config", "section", "option");
 multi.value("internet", "Internet");
 multi.renderWidget("section", 0, ["internet"]);
 multi.transformChoices();
