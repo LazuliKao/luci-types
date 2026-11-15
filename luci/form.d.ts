@@ -15,6 +15,8 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractElement.html
 	 */
 	abstract class AbstractElement {
+		/** Child form elements, populated by append(). */
+		children: AbstractElement[];
 		/** Create a LuCI subclass while preserving the concrete instance type. */
 		static extend<TBase, TMembers extends object>(
 			this: LuCI.baseclass.Class<TBase>,
@@ -132,6 +134,7 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractSection.html
 	 */
 	abstract class AbstractSection extends AbstractElement {
+		children: AbstractValue[];
 		/**
 		 * The section type string, e.g. "interface", "dhcp", etc.
 		 * Used to filter UCI sections by type.
@@ -407,9 +410,8 @@ declare namespace LuCI.form {
 		 * depending on the amount of passed arguments.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractSection.html#getOption
 		 */
-		getOption(
-			option?: string,
-		): null | AbstractValue | { [optionName: string]: AbstractValue };
+		getOption(option: string): AbstractValue | null;
+		getOption(): { [optionName: string]: AbstractValue };
 	}
 
 	// ============================================================================
@@ -427,6 +429,14 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractValue.html
 	 */
 	abstract class AbstractValue extends AbstractElement {
+		section: AbstractSection;
+		map: Map;
+		option: string;
+		/** Choice arrays are initialized lazily by value(). */
+		keylist?: string[];
+		vallist?: (string | Node)[];
+		transformChoices(): Record<string, string | Node> | null;
+		triggerValidation(section_id: string): boolean;
 		description: string;
 		/**
 		 * If set to `false`, the underlying option value is retained upon saving
@@ -801,7 +811,7 @@ declare namespace LuCI.form {
 		 * @param formvalue - The input value to write.
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.AbstractValue.html#write
 		 */
-		write(section_id: string, formvalue: string | string[]): null;
+		write(section_id: string, formvalue: string | string[]): void | Promise<void>;
 
 		/**
 		 * Remove the corresponding value from the configuration.
@@ -843,6 +853,7 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.Value.html
 	 */
 	class Value extends AbstractValue {
+		renderWidget(section_id: string, option_index: number, cfgvalue: unknown): Node | Promise<Node>;
 		/**
 		 * If set to `true`, the field is rendered as a password input, otherwise
 		 * as a plain text input.
@@ -1063,6 +1074,13 @@ declare namespace LuCI.form {
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.DynamicList.html#allowduplicates
 		 */
 		allowduplicates: boolean;
+	}
+
+	/** A multi-select dropdown, derived from DynamicList. */
+	class MultiValue extends DynamicList {
+		create: boolean;
+		display_size: number | null;
+		dropdown_size: number | null;
 	}
 
 	/**
@@ -2032,6 +2050,8 @@ declare namespace LuCI.form {
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.TableSection.html
 	 */
 	class TableSection extends TypedSection {
+		handleRemove(section_id: string, ev?: Event): Promise<void>;
+		renderMoreOptionsModal(section_id: string, ev?: Event): Promise<void>;
 		/**
 		 * Override the per-section instance title caption shown in the first
 		 * column of the table unless `anonymous` is set to true. Set to a string,
@@ -2275,7 +2295,7 @@ declare namespace LuCI.form {
 	 *
 	 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.SectionValue.html
 	 */
-	class SectionValue extends AbstractValue {
+	class SectionValue extends Value {
 		/**
 		 * Access the embedded section instance. This property holds a reference
 		 * to the instantiated nested section.
@@ -2341,7 +2361,7 @@ declare namespace LuCI.form {
 		 * @override
 		 * @see https://openwrt.github.io/luci/jsapi/LuCI.form.SectionValue.html#write
 		 */
-		write(section_id: string, formvalue?: string | string[]): null;
+		write(section_id: string, formvalue?: string | string[]): void;
 
 		/**
 		 * Since the section container is not tied to any UCI configuration, its

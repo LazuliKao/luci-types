@@ -517,6 +517,9 @@ declare namespace LuCI.ui {
 		 */
 		isValid(): boolean;
 
+		/** Mark this widget invalid until the user edits it. */
+		setInvalid(message: string): void;
+
 		/**
 		 * Returns the current validation error.
 		 *
